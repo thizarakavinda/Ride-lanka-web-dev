@@ -11,10 +11,26 @@ async function authHeaders(token) {
     };
 }
 
+async function safeFetch(url, options) {
+    try {
+        return await fetch(url, options);
+    } catch (e) {
+        // Most common in-browser fetch failure is: TypeError: Failed to fetch
+        const hint =
+            `Network request failed for ${url}. ` +
+            `Check that your backend is running and reachable at NEXT_PUBLIC_BACKEND_URL=${BACKEND} (from .env.local), ` +
+            `and that it allows requests from this app (CORS).`;
+        const err = new Error(e?.message ? `${e.message}. ${hint}` : hint);
+        err.cause = e;
+        throw err;
+    }
+}
+
 // ─── Profile ───────────────────────────────────────────────────────────────
 
 export async function saveUserProfile(token, { name, interests }) {
-    const res = await fetch(`${BACKEND}/api/users/profile`, {
+    const url = `${BACKEND}/api/users/profile`;
+    const res = await safeFetch(url, {
         method: "POST",
         headers: await authHeaders(token),
         body: JSON.stringify({ name, interests }),
@@ -26,7 +42,8 @@ export async function saveUserProfile(token, { name, interests }) {
 // ─── Recommendations ───────────────────────────────────────────────────────
 
 export async function getRecommendations(token) {
-    const res = await fetch(`${BACKEND}/api/users/recommendations`, {
+    const url = `${BACKEND}/api/users/recommendations`;
+    const res = await safeFetch(url, {
         headers: await authHeaders(token),
     });
     if (!res.ok) throw new Error(await res.text());
@@ -34,7 +51,8 @@ export async function getRecommendations(token) {
 }
 
 export async function refreshRecommendations(token) {
-    const res = await fetch(`${BACKEND}/api/users/recommendations/refresh`, {
+    const url = `${BACKEND}/api/users/recommendations/refresh`;
+    const res = await safeFetch(url, {
         method: "POST",
         headers: await authHeaders(token),
     });
@@ -46,7 +64,8 @@ export async function refreshRecommendations(token) {
 
 export async function trackEvent(token, { place_name, category, action }) {
     // Fire-and-forget — don't block the UI
-    fetch(`${BACKEND}/api/events`, {
+    const url = `${BACKEND}/api/events`;
+    safeFetch(url, {
         method: "POST",
         headers: await authHeaders(token),
         body: JSON.stringify({ place_name, category, action }),
