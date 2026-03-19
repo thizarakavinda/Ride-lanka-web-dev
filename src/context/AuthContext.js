@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { createContext, useContext, useEffect, useState } from "react";
 import {
@@ -44,6 +44,7 @@ export function AuthProvider({ children }) {
   async function signIn(email, password) {
     const cred = await signInWithEmailAndPassword(auth, email, password);
     const idToken = await cred.user.getIdToken();
+    setUser(cred.user);
     setToken(idToken);
     return cred.user;
   }
@@ -51,6 +52,7 @@ export function AuthProvider({ children }) {
   async function signUp(email, password, name, interests) {
     const cred = await createUserWithEmailAndPassword(auth, email, password);
     const idToken = await cred.user.getIdToken();
+    setUser(cred.user);
     setToken(idToken);
 
     await saveUserProfile(idToken, { name, interests });

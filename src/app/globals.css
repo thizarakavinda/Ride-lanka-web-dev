@@ -516,6 +516,90 @@ body {
 }
 .map-placeholder .icon { font-size: 48px; margin-bottom: 12px; }
 
+/* Add new trip */
+.new-trip-layout {
+  display: grid;
+  grid-template-columns: 1fr 460px;
+  gap: 28px;
+}
+.new-trip-map {
+  background: white;
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  height: 640px;
+  position: sticky;
+  top: 32px;
+}
+.new-trip-details {
+  min-height: 640px;
+}
+.new-trip-card {
+  background: white;
+  border-radius: var(--radius);
+  padding: 24px;
+  box-shadow: var(--shadow-sm);
+}
+.new-trip-stops {
+  margin-top: 8px;
+  background: var(--gray-50);
+  border: 1px solid var(--gray-100);
+  border-radius: var(--radius-sm);
+  padding: 14px;
+}
+.new-stop-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.new-stop-row input {
+  width: 100%;
+  padding: 13px 16px;
+  border: 1.5px solid var(--gray-200);
+  border-radius: var(--radius-sm);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  color: var(--text);
+  outline: none;
+}
+.new-stop-row input:focus { border-color: var(--teal); }
+.new-trip-stop-list { display: flex; flex-direction: column; gap: 10px; }
+.new-trip-stop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  background: white;
+  border: 1px solid var(--gray-100);
+  border-radius: 12px;
+  padding: 12px 12px;
+}
+.stop-index {
+  width: 28px;
+  height: 28px;
+  border-radius: 10px;
+  background: var(--teal-light);
+  color: var(--teal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 12px;
+  flex-shrink: 0;
+}
+.stop-remove {
+  width: 34px;
+  height: 34px;
+  border-radius: 12px;
+  border: 1px solid var(--gray-100);
+  background: white;
+  cursor: pointer;
+  color: var(--gray-600);
+  transition: all 0.2s;
+}
+.stop-remove:hover { background: var(--gray-50); color: var(--teal); border-color: var(--teal-light); }
+
 /* Itinerary */
 .itinerary-day {
   background: white; border-radius: var(--radius);
