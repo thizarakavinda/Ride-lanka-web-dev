@@ -95,10 +95,43 @@ export async function saveUserTrip(token, tripData) {
     return res.json();
 }
 
+export async function updateUserTrip(token, tripId, updates) {
+    const url = `${BACKEND}/api/users/trips/${tripId}`;
+    const res = await safeFetch(url, {
+        method: "PUT",
+        headers: await authHeaders(token),
+        body: JSON.stringify(updates),
+    });
+    if (!res.ok) throw new Error(await res.text());
+    return res.json();
+}
+
 export async function getUserTrips(token) {
     const url = `${BACKEND}/api/users/trips`;
     const res = await safeFetch(url, {
         headers: await authHeaders(token),
+    });
+    if (!res.ok) throw new Error(await res.text());
+    return res.json();
+}
+
+export async function reorderRouteList(token, stops, route_preference) {
+    const url = `${BACKEND}/api/users/trips/reorder`;
+    const res = await safeFetch(url, {
+        method: "POST",
+        headers: await authHeaders(token),
+        body: JSON.stringify({ stops, route_preference }),
+    });
+    if (!res.ok) throw new Error(await res.text());
+    return res.json();
+}
+
+export async function searchAndAddPlace(token, query) {
+    const url = `${BACKEND}/api/users/trips/search-place`;
+    const res = await safeFetch(url, {
+        method: "POST",
+        headers: await authHeaders(token),
+        body: JSON.stringify({ query }),
     });
     if (!res.ok) throw new Error(await res.text());
     return res.json();

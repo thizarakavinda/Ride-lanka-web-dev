@@ -3,7 +3,7 @@
 import { useMemo, useState, useEffect } from "react";
 import Sidebar from "../Sidebar";
 import { useAuth } from "@/context/AuthContext";
-import { generateTripPlan, fetchPlaceCulture, getUserTrips, saveUserTrip } from "@/lib/api";
+import { generateTripPlan, fetchPlaceCulture, getUserTrips, saveUserTrip, searchAndAddPlace, reorderRouteList, updateUserTrip } from "@/lib/api";
 
 const FAVORITE_CATEGORIES = [
   {
@@ -44,7 +44,7 @@ const FAVORITE_CATEGORIES = [
 
 const GOOGLE_MAPS_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
 
-function buildMapEmbedUrl(stops) {
+function buildMapEmbedUrl(stops, preference = "shortest") {
   if (!GOOGLE_MAPS_KEY) return null;
 
   const validCoords = Array.isArray(stops)
@@ -56,9 +56,10 @@ function buildMapEmbedUrl(stops) {
     const coords = validCoords.map((s) => `${s.lat},${s.lng}`);
     const origin = encodeURIComponent(coords[0]);
     const destination = encodeURIComponent(coords[coords.length - 1]);
+    const optimizePrefix = preference === "shortest" ? "optimize:true|" : "";
     const waypoints =
       coords.length > 2
-        ? `&waypoints=${encodeURIComponent(coords.slice(1, -1).join("|"))}`
+        ? `&waypoints=${encodeURIComponent(optimizePrefix + coords.slice(1, -1).join("|"))}`
         : "";
 
     return `https://www.google.com/maps/embed/v1/directions?key=${GOOGLE_MAPS_KEY}&origin=${origin}&destination=${destination}${waypoints}`;
@@ -87,6 +88,11 @@ export default function TripsScreen({ active, showScreen }) {
   const [tripName, setTripName] = useState("");
   const [tripDate, setTripDate] = useState("");
   const [stopCount, setStopCount] = useState(3);
+  const [routePreference, setRoutePreference] = useState("shortest");
+
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isSearching, setIsSearching] = useState(false);
+
   const [favorites, setFavorites] = useState(["hiking", "dance"]);
   const [plannedStops, setPlannedStops] = useState([]);
   const [aiSource, setAiSource] = useState("");
@@ -95,8 +101,61 @@ export default function TripsScreen({ active, showScreen }) {
   const [isEditing, setIsEditing] = useState(true);
   const [cultureData, setCultureData] = useState({});
   const [loadingCultureId, setLoadingCultureId] = useState(null);
+  const [tripMemories, setTripMemories] = useState({});
 
-  const mapEmbedUrl = useMemo(() => buildMapEmbedUrl(plannedStops), [plannedStops]);
+  useEffect(() => {
+    if (activeTrip && activeTrip.stops) {
+      const mems = {};
+      activeTrip.stops.forEach((s) => {
+        mems[s.stop_order] = {
+           note: s.user_memory || "",
+           img: s.user_memory_img || ""
+        };
+      });
+      setTripMemories(mems);
+    }
+  }, [activeTrip]);
+
+  async function handleToggleTripStatus() {
+     if (!activeTrip) return;
+     const currentStatus = activeTrip.status || "Upcoming";
+     // State machine: Upcoming -> Active -> Completed -> Upcoming
+     const newStatus = currentStatus === "Upcoming" ? "Active" : 
+                       (currentStatus === "Active" ? "Completed" : "Upcoming");
+                       
+     try {
+       await updateUserTrip(token, activeTrip.id, { status: newStatus });
+       setActiveTrip(prev => ({ ...prev, status: newStatus }));
+       loadTrips();
+     } catch (err) {
+       console.error("Failed to update status", err);
+       alert("Could not update trip status.");
+     }
+  }
+
+  async function handleSaveMemory(stopOrder) {
+     if (!activeTrip) return;
+     const memory = tripMemories[stopOrder];
+     if (!memory) return;
+     
+     const updatedStops = activeTrip.stops.map(s => {
+       if (s.stop_order === stopOrder) {
+         return { ...s, user_memory: memory.note, user_memory_img: memory.img };
+       }
+       return s;
+     });
+
+     try {
+       await updateUserTrip(token, activeTrip.id, { stops: updatedStops });
+       setActiveTrip(prev => ({ ...prev, stops: updatedStops }));
+       alert("Memory saved securely! 📸");
+     } catch(err) {
+       console.error("Failed to save memory", err);
+       alert("Could not save memory.");
+     }
+  }
+
+  const mapEmbedUrl = useMemo(() => buildMapEmbedUrl(plannedStops, routePreference), [plannedStops, routePreference]);
   const listMapEmbedUrl = useMemo(() => buildMapEmbedUrl([]), []);
   const activeTripMapUrl = useMemo(() => buildMapEmbedUrl(activeTrip?.stops || []), [activeTrip]);
 
@@ -162,12 +221,46 @@ export default function TripsScreen({ active, showScreen }) {
       setPlannedStops([]);
       setFavorites(["hiking", "dance"]);
       setIsEditing(true);
-      loadTrips(); 
+      loadTrips();
     } catch (err) {
       console.error(err);
       alert("Failed to save trip.");
     } finally {
       setLoadingPlan(false);
+    }
+  }
+
+  async function applyAlgorithm() {
+    if (plannedStops.length < 2) return;
+    setLoadingPlan(true);
+    try {
+      const result = await reorderRouteList(token, plannedStops, routePreference);
+      if (result.stops && result.stops.length) {
+        setPlannedStops(result.stops);
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Algorithm failed to reorder.");
+    } finally {
+      setLoadingPlan(false);
+    }
+  }
+
+  async function handleSearchPlace(e) {
+    e.preventDefault();
+    if (!searchQuery.trim()) return;
+    setIsSearching(true);
+    try {
+      const result = await searchAndAddPlace(token, searchQuery.trim());
+      const newOrder = plannedStops.length + 1;
+      const newStop = { ...result, stop_order: newOrder, category: result.category || "general" };
+      setPlannedStops((prev) => [...prev, newStop]);
+      setSearchQuery("");
+    } catch (err) {
+      console.error(err);
+      alert(err.message || "Failed to search place");
+    } finally {
+      setIsSearching(false);
     }
   }
 
@@ -198,6 +291,7 @@ export default function TripsScreen({ active, showScreen }) {
         trip_date: tripDate,
         stop_count: stopCount,
         favorites,
+        route_preference: routePreference,
       });
 
       setPlannedStops(Array.isArray(result?.stops) ? result.stops : []);
@@ -272,7 +366,9 @@ export default function TripsScreen({ active, showScreen }) {
                           Starts at: {t.stops?.[0]?.name || "Unknown"}
                         </div>
                       </div>
-                      <div className={`trip-status status-active`} style={{ background: "var(--teal-light)", color: "var(--teal-dark)", fontWeight: 700 }}>Start Route</div>
+                      <div className={`trip-status`} style={{ background: t.status === "Active" ? "#10b981" : (t.status === "Completed" ? "var(--teal-dark)" : "var(--teal-light)"), color: t.status === "Upcoming" || !t.status ? "var(--teal-dark)" : "white", fontWeight: 700 }}>
+                        {t.status || "Upcoming"}
+                      </div>
                     </div>
                   );
                 })}
@@ -324,47 +420,89 @@ export default function TripsScreen({ active, showScreen }) {
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 8 }}>
                     <div>
                       <h3 style={{ fontSize: 20, fontWeight: 800 }}>{activeTrip.trip_name}</h3>
-                      <div style={{ fontSize: 13, color: "var(--gray-500)", marginTop: 4 }}>Started Route • {activeTrip.trip_date || "Today"}</div>
+                      <div style={{ fontSize: 13, color: "var(--gray-500)", marginTop: 4 }}>{activeTrip.trip_date || "Upcoming Dates"}</div>
                     </div>
-                    <div className="pill pill-teal" style={{ background: "#10b981", color: "white" }}>Active</div>
+                    <button 
+                       onClick={handleToggleTripStatus}
+                       className="pill pill-teal" 
+                       style={{ 
+                         cursor: "pointer", 
+                         border: "none", 
+                         background: activeTrip.status === "Active" ? "#10b981" : (activeTrip.status === "Completed" ? "var(--teal-dark)" : "var(--gray-200)"), 
+                         color: activeTrip.status === "Upcoming" || !activeTrip.status ? "var(--gray-800)" : "white",
+                         fontWeight: 700
+                       }}
+                    >
+                      {activeTrip.status === "Active" ? "Active (Click to Complete)" : (activeTrip.status === "Completed" ? "Completed (Click to Reset)" : "Upcoming (Click to Start)")}
+                    </button>
                   </div>
-                  
+
                   <div style={{ marginTop: 24, borderTop: "1px solid var(--gray-200)", paddingTop: 18 }}>
                     <h4 style={{ marginBottom: 12, fontSize: 16, fontWeight: 800 }}>Start Driving ({activeTrip.stops?.length || 0} stops)</h4>
                     <div style={{ display: "flex", flexDirection: "column", gap: 12, maxHeight: "calc(100vh - 280px)", overflowY: "auto", paddingRight: 8 }}>
                       {(activeTrip.stops || []).map((stop, i) => (
-                         <div key={i} style={{ background: "var(--gray-50)", padding: 14, borderRadius: 12, border: "1px solid var(--gray-100)" }}>
-                           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-                             <div style={{ flex: 1 }}>
-                                <div style={{ fontWeight: 800, color: "var(--teal-dark)" }}>{stop.stop_order}. {stop.name}</div>
-                                <div style={{ fontSize: 13, color: "var(--gray-500)", marginTop: 6, lineHeight: 1.4 }}>{stop.description}</div>
-                             </div>
-                             <button 
-                                onClick={() => handleGetCulture(stop.stop_order, stop.name)}
-                                disabled={loadingCultureId === stop.stop_order}
-                                style={{
-                                  border: "1px solid var(--teal)", background: cultureData[stop.stop_order] ? "var(--teal)" : "transparent",
-                                  color: cultureData[stop.stop_order] ? "white" : "var(--teal)", padding: "6px 10px", borderRadius: 6,
-                                  fontSize: 12, fontWeight: 700, cursor: "pointer", marginLeft: 12, whiteSpace: "nowrap", transition: "0.2s"
-                                }}
-                             >
-                                {loadingCultureId === stop.stop_order ? "..." : (cultureData[stop.stop_order] ? "Hide Info" : "📖 Insights")}
-                             </button>
-                           </div>
-                           {stop.stop_note && <div style={{ fontSize: 12, color: "var(--teal)", marginTop: 8, fontWeight: 600 }}>💡 {stop.stop_note}</div>}
-                           
-                           {cultureData[stop.stop_order] && (
-                             <div style={{ marginTop: 12, borderTop: "1px dashed var(--gray-200)", paddingTop: 12, animation: "fadeIn 0.3s" }}>
-                               <h5 style={{ fontSize: 13, marginBottom: 8, color: "var(--gray-800)" }}>Local Culture & Seasons:</h5>
-                               <div style={{ fontSize: 12, color: "var(--gray-600)", display: "flex", flexDirection: "column", gap: 6 }}>
-                                  <div><strong>👕 Dress Code:</strong> {cultureData[stop.stop_order].dress_code}</div>
-                                  <div><strong>🛑 Behavior Rules:</strong> {cultureData[stop.stop_order].behavior_rules}</div>
-                                  <div><strong>🌤️ Best Season:</strong> {cultureData[stop.stop_order].best_season}</div>
-                                  <div><strong>🏛️ Context:</strong> {cultureData[stop.stop_order].historical_context}</div>
-                               </div>
-                             </div>
-                           )}
-                         </div>
+                        <div key={i} style={{ background: "var(--gray-50)", padding: 14, borderRadius: 12, border: "1px solid var(--gray-100)" }}>
+                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                            <div style={{ flex: 1 }}>
+                              <div style={{ fontWeight: 800, color: "var(--teal-dark)" }}>{stop.stop_order}. {stop.name}</div>
+                              <div style={{ fontSize: 13, color: "var(--gray-500)", marginTop: 6, lineHeight: 1.4 }}>{stop.description}</div>
+                            </div>
+                            <button
+                              onClick={() => handleGetCulture(stop.stop_order, stop.name)}
+                              disabled={loadingCultureId === stop.stop_order}
+                              style={{
+                                border: "1px solid var(--teal)", background: cultureData[stop.stop_order] ? "var(--teal)" : "transparent",
+                                color: cultureData[stop.stop_order] ? "white" : "var(--teal)", padding: "6px 10px", borderRadius: 6,
+                                fontSize: 12, fontWeight: 700, cursor: "pointer", marginLeft: 12, whiteSpace: "nowrap", transition: "0.2s"
+                              }}
+                            >
+                              {loadingCultureId === stop.stop_order ? "..." : (cultureData[stop.stop_order] ? "Hide Info" : "📖 Insights")}
+                            </button>
+                          </div>
+                          {stop.stop_note && <div style={{ fontSize: 12, color: "var(--teal)", marginTop: 8, fontWeight: 600 }}>💡 {stop.stop_note}</div>}
+
+                          <div style={{ marginTop: 14, background: "white", padding: 12, borderRadius: 10, border: "1px solid var(--gray-200)" }}>
+                            <div style={{ fontSize: 12, fontWeight: 700, color: "var(--gray-700)", marginBottom: 8 }}>📝 Your Memory Journal</div>
+                            
+                            {tripMemories[stop.stop_order]?.img && (
+                              <img src={tripMemories[stop.stop_order].img} alt="Memory" style={{ width: "100%", maxHeight: 180, objectFit: "cover", borderRadius: 8, marginBottom: 8 }} />
+                            )}
+
+                            <input
+                              type="text"
+                              placeholder="Add a photo URL here (optional)..."
+                              value={tripMemories[stop.stop_order]?.img || ""}
+                              onChange={e => setTripMemories(prev => ({...prev, [stop.stop_order]: { ...prev[stop.stop_order], img: e.target.value }}))}
+                              style={{ width: "100%", padding: "8px 10px", borderRadius: 6, border: "1px solid var(--gray-200)", fontSize: 12, marginBottom: 8, outline: "none" }}
+                            />
+                            <textarea
+                              placeholder="What did you experience here? Write your thoughts..."
+                              value={tripMemories[stop.stop_order]?.note || ""}
+                              onChange={e => setTripMemories(prev => ({...prev, [stop.stop_order]: { ...prev[stop.stop_order], note: e.target.value }}))}
+                              style={{ width: "100%", padding: "8px 10px", borderRadius: 6, border: "1px solid var(--gray-200)", fontSize: 12, minHeight: 60, resize: "vertical", outline: "none" }}
+                            />
+                            <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 8 }}>
+                              <button 
+                                onClick={() => handleSaveMemory(stop.stop_order)}
+                                style={{ background: "var(--teal-dark)", color: "white", padding: "6px 14px", borderRadius: 6, fontSize: 12, fontWeight: 700, border: "none", cursor: "pointer", transition: "0.2s" }}
+                              >
+                                Save Memory
+                              </button>
+                            </div>
+                          </div>
+                          
+                          {cultureData[stop.stop_order] && (
+                            <div style={{ marginTop: 12, borderTop: "1px dashed var(--gray-200)", paddingTop: 12, animation: "fadeIn 0.3s" }}>
+                              <h5 style={{ fontSize: 13, marginBottom: 8, color: "var(--gray-800)" }}>Local Culture & Seasons:</h5>
+                              <div style={{ fontSize: 12, color: "var(--gray-600)", display: "flex", flexDirection: "column", gap: 6 }}>
+                                <div><strong>👕 Dress Code:</strong> {cultureData[stop.stop_order].dress_code}</div>
+                                <div><strong>🛑 Behavior Rules:</strong> {cultureData[stop.stop_order].behavior_rules}</div>
+                                <div><strong>🌤️ Best Season:</strong> {cultureData[stop.stop_order].best_season}</div>
+                                <div><strong>🏛️ Context:</strong> {cultureData[stop.stop_order].historical_context}</div>
+                              </div>
+                            </div>
+                          )}
+                        </div>
                       ))}
                     </div>
                   </div>
@@ -528,16 +666,66 @@ export default function TripsScreen({ active, showScreen }) {
 
                   {plannedStops.length > 0 && (
                     <div style={{ marginTop: 24, borderTop: "1px solid var(--gray-200)", paddingTop: 18 }}>
-                      <h4 style={{ marginBottom: 12, fontSize: 16, fontWeight: 800 }}>Your AI Route ({plannedStops.length} stops)</h4>
+                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+                        <h4 style={{ fontSize: 16, fontWeight: 800 }}>Your AI Route ({plannedStops.length} stops)</h4>
+                      </div>
+
+                      {!isEditing && (
+                        <div style={{ background: "var(--teal-light)", padding: "10px 14px", borderRadius: 10, marginBottom: 16, border: "1px solid #b2ece3" }}>
+                          <div style={{ fontSize: 12, fontWeight: 700, color: "var(--teal-dark)", marginBottom: 6 }}>Active Route Algorithm</div>
+                          <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
+                            <label style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", fontSize: 13, color: "var(--gray-800)", fontWeight: 600 }}>
+                              <input type="radio" name="routeAlgActive" value="shortest" checked={routePreference === "shortest"} onChange={e => setRoutePreference(e.target.value)} disabled={loadingPlan} />
+                              Shortest Path
+                            </label>
+                            <label style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", fontSize: 13, color: "var(--gray-800)", fontWeight: 600 }}>
+                              <input type="radio" name="routeAlgActive" value="safest" checked={routePreference === "safest"} onChange={e => setRoutePreference(e.target.value)} disabled={loadingPlan} />
+                              Safest Path
+                            </label>
+                            <label style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", fontSize: 13, color: "var(--gray-800)", fontWeight: 600 }}>
+                              <input type="radio" name="routeAlgActive" value="max_places" checked={routePreference === "max_places"} onChange={e => setRoutePreference(e.target.value)} disabled={loadingPlan} />
+                              Max Places Covering
+                            </label>
+                            <button
+                              onClick={applyAlgorithm}
+                              disabled={loadingPlan || plannedStops.length < 2}
+                              style={{ marginLeft: "auto", background: "var(--teal-dark)", color: "white", padding: "4px 12px", borderRadius: 6, fontSize: 12, fontWeight: 700, border: "none", cursor: (loadingPlan || plannedStops.length < 2) ? "not-allowed" : "pointer" }}
+                            >
+                              {loadingPlan ? "Applying..." : "Apply Algorithm"}
+                            </button>
+                          </div>
+                        </div>
+                      )}
+
+                      {!isEditing && (
+                        <form onSubmit={handleSearchPlace} style={{ display: "flex", gap: 8, marginBottom: 16 }}>
+                          <input
+                            value={searchQuery}
+                            onChange={e => setSearchQuery(e.target.value)}
+                            placeholder="Add a custom place... (e.g. Kandy Lake)"
+                            disabled={isSearching}
+                            style={{ flex: 1, padding: "10px 14px", borderRadius: 8, border: "1px solid var(--gray-200)", fontSize: 13, outline: "none" }}
+                          />
+                          <button
+                            type="submit"
+                            disabled={isSearching || !searchQuery.trim()}
+                            style={{ background: "var(--teal)", color: "white", padding: "0 16px", borderRadius: 8, fontWeight: 700, fontSize: 13, border: "none", cursor: (isSearching || !searchQuery.trim()) ? "not-allowed" : "pointer", opacity: (isSearching || !searchQuery.trim()) ? 0.6 : 1 }}
+                          >
+                            {isSearching ? "Searching..." : "Add to Route +"}
+                          </button>
+                        </form>
+                      )}
+
                       <div style={{ display: "flex", flexDirection: "column", gap: 12, maxHeight: 380, overflowY: "auto", paddingRight: 8 }}>
                         {plannedStops.map((stop, i) => (
-                           <div key={i} style={{ background: "var(--gray-50)", padding: 14, borderRadius: 12, border: "1px solid var(--gray-100)" }}>
-                             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-                               <div style={{ flex: 1 }}>
-                                  <div style={{ fontWeight: 800, color: "var(--teal-dark)" }}>{stop.stop_order}. {stop.name}</div>
-                                  <div style={{ fontSize: 13, color: "var(--gray-500)", marginTop: 6, lineHeight: 1.4 }}>{stop.description}</div>
-                               </div>
-                               <button 
+                          <div key={i} style={{ background: "var(--gray-50)", padding: 14, borderRadius: 12, border: "1px solid var(--gray-100)" }}>
+                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                              <div style={{ flex: 1 }}>
+                                <div style={{ fontWeight: 800, color: "var(--teal-dark)" }}>{stop.stop_order}. {stop.name}</div>
+                                <div style={{ fontSize: 13, color: "var(--gray-500)", marginTop: 6, lineHeight: 1.4 }}>{stop.description}</div>
+                              </div>
+                              <div style={{ display: "flex", gap: 8, marginLeft: 12 }}>
+                                <button
                                   onClick={() => handleGetCulture(stop.stop_order, stop.name)}
                                   disabled={loadingCultureId === stop.stop_order}
                                   style={{
@@ -549,28 +737,76 @@ export default function TripsScreen({ active, showScreen }) {
                                     fontSize: 12,
                                     fontWeight: 700,
                                     cursor: "pointer",
-                                    marginLeft: 12,
                                     whiteSpace: "nowrap",
                                     transition: "0.2s"
                                   }}
-                               >
+                                >
                                   {loadingCultureId === stop.stop_order ? "..." : (cultureData[stop.stop_order] ? "Hide Info" : "📖 Insights")}
-                               </button>
-                             </div>
-                             {stop.stop_note && <div style={{ fontSize: 12, color: "var(--teal)", marginTop: 8, fontWeight: 600 }}>💡 {stop.stop_note}</div>}
-                             
-                             {cultureData[stop.stop_order] && (
-                               <div style={{ marginTop: 12, borderTop: "1px dashed var(--gray-200)", paddingTop: 12, animation: "fadeIn 0.3s" }}>
-                                 <h5 style={{ fontSize: 13, marginBottom: 8, color: "var(--gray-800)" }}>Local Culture & Seasons:</h5>
-                                 <div style={{ fontSize: 12, color: "var(--gray-600)", display: "flex", flexDirection: "column", gap: 6 }}>
-                                    <div><strong>👕 Dress Code:</strong> {cultureData[stop.stop_order].dress_code}</div>
-                                    <div><strong>🛑 Behavior Rules:</strong> {cultureData[stop.stop_order].behavior_rules}</div>
-                                    <div><strong>🌤️ Best Season:</strong> {cultureData[stop.stop_order].best_season}</div>
-                                    <div><strong>🏛️ Context:</strong> {cultureData[stop.stop_order].historical_context}</div>
-                                 </div>
-                               </div>
-                             )}
-                           </div>
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => setPlannedStops(prev => prev.filter((_, idx) => idx !== i))}
+                                  style={{
+                                    border: "1px solid #fecaca",
+                                    background: "#fef2f2",
+                                    color: "#ef4444",
+                                    padding: "6px 10px",
+                                    borderRadius: 6,
+                                    fontSize: 12,
+                                    fontWeight: 700,
+                                    cursor: "pointer",
+                                    whiteSpace: "nowrap",
+                                    transition: "0.2s"
+                                  }}
+                                >
+                                  ✖ Remove
+                                </button>
+                              </div>
+                            </div>
+                            {stop.stop_note && <div style={{ fontSize: 12, color: "var(--teal)", marginTop: 8, fontWeight: 600 }}>💡 {stop.stop_note}</div>}
+
+                            <div style={{ marginTop: 14, background: "white", padding: 12, borderRadius: 10, border: "1px solid var(--gray-200)" }}>
+                              <div style={{ fontSize: 12, fontWeight: 700, color: "var(--gray-700)", marginBottom: 8 }}>📝 Your Memory Journal</div>
+                              
+                              {tripMemories[stop.stop_order]?.img && (
+                                <img src={tripMemories[stop.stop_order].img} alt="Memory" style={{ width: "100%", maxHeight: 180, objectFit: "cover", borderRadius: 8, marginBottom: 8 }} />
+                              )}
+
+                              <input
+                                type="text"
+                                placeholder="Add a photo URL here (optional)..."
+                                value={tripMemories[stop.stop_order]?.img || ""}
+                                onChange={e => setTripMemories(prev => ({...prev, [stop.stop_order]: { ...prev[stop.stop_order], img: e.target.value }}))}
+                                style={{ width: "100%", padding: "8px 10px", borderRadius: 6, border: "1px solid var(--gray-200)", fontSize: 12, marginBottom: 8, outline: "none" }}
+                              />
+                              <textarea
+                                placeholder="What did you experience here? Write your thoughts..."
+                                value={tripMemories[stop.stop_order]?.note || ""}
+                                onChange={e => setTripMemories(prev => ({...prev, [stop.stop_order]: { ...prev[stop.stop_order], note: e.target.value }}))}
+                                style={{ width: "100%", padding: "8px 10px", borderRadius: 6, border: "1px solid var(--gray-200)", fontSize: 12, minHeight: 60, resize: "vertical", outline: "none" }}
+                              />
+                              <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 8 }}>
+                                <button 
+                                  onClick={() => handleSaveMemory(stop.stop_order)}
+                                  style={{ background: "var(--teal-dark)", color: "white", padding: "6px 14px", borderRadius: 6, fontSize: 12, fontWeight: 700, border: "none", cursor: "pointer", transition: "0.2s" }}
+                                >
+                                  Save Memory
+                                </button>
+                              </div>
+                            </div>
+
+                            {cultureData[stop.stop_order] && (
+                              <div style={{ marginTop: 12, borderTop: "1px dashed var(--gray-200)", paddingTop: 12, animation: "fadeIn 0.3s" }}>
+                                <h5 style={{ fontSize: 13, marginBottom: 8, color: "var(--gray-800)" }}>Local Culture & Seasons:</h5>
+                                <div style={{ fontSize: 12, color: "var(--gray-600)", display: "flex", flexDirection: "column", gap: 6 }}>
+                                  <div><strong>👕 Dress Code:</strong> {cultureData[stop.stop_order].dress_code}</div>
+                                  <div><strong>🛑 Behavior Rules:</strong> {cultureData[stop.stop_order].behavior_rules}</div>
+                                  <div><strong>🌤️ Best Season:</strong> {cultureData[stop.stop_order].best_season}</div>
+                                  <div><strong>🏛️ Context:</strong> {cultureData[stop.stop_order].historical_context}</div>
+                                </div>
+                              </div>
+                            )}
+                          </div>
                         ))}
                       </div>
                     </div>
