@@ -5,15 +5,41 @@ import Sidebar from "../Sidebar";
 import { useAuth } from "@/context/AuthContext";
 import { generateTripPlan } from "@/lib/api";
 
-const FAVORITE_OPTIONS = [
-  { id: "culture", label: "Culture" },
-  { id: "hiking", label: "Hiking" },
-  { id: "beach", label: "Beach" },
-  { id: "wildlife", label: "Wildlife" },
-  { id: "nature", label: "Nature" },
-  { id: "food", label: "Food" },
-  { id: "adventure", label: "Adventure" },
-  { id: "dance", label: "Dance" },
+const FAVORITE_CATEGORIES = [
+  {
+    title: "Activities",
+    options: [
+      { id: "hiking", label: "Hiking" },
+      { id: "dance", label: "Dancing" },
+      { id: "sing", label: "Singing" },
+      { id: "surfing", label: "Surfing" },
+      { id: "safari", label: "Safari" },
+      { id: "scuba", label: "Scuba Diving" },
+      { id: "snorkeling", label: "Snorkeling" },
+      { id: "cycling", label: "Cycling" },
+      { id: "yoga", label: "Yoga Retreat" },
+      { id: "cooking", label: "Cooking Class" },
+      { id: "rock_climbing", label: "Rock Climb" },
+      { id: "kayaking", label: "Kayaking" }
+    ]
+  },
+  {
+    title: "Likes & Themes",
+    options: [
+      { id: "culture", label: "Culture" },
+      { id: "nature", label: "Nature" },
+      { id: "beach", label: "Beach" },
+      { id: "wildlife", label: "Wildlife" },
+      { id: "food", label: "Food" },
+      { id: "adventure", label: "Adventure" },
+      { id: "relaxation", label: "Relax" },
+      { id: "photography", label: "Photography" },
+      { id: "nightlife", label: "Nightlife" },
+      { id: "shopping", label: "Shopping" },
+      { id: "romantic", label: "Romantic" },
+      { id: "backpacking", label: "Backpacking" }
+    ]
+  }
 ];
 
 const GOOGLE_MAPS_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
@@ -282,8 +308,8 @@ export default function TripsScreen({ active, showScreen }) {
                           outline: "none",
                         }}
                       >
-                        {[2, 3, 4, 5, 6, 7].map((count) => (
-                          <option key={count} value={count}>{count} stops</option>
+                        {Array.from({ length: 20 }, (_, i) => i + 1).map((count) => (
+                          <option key={count} value={count}>{count} {count === 1 ? 'stop' : 'stops'}</option>
                         ))}
                       </select>
                     </div>
@@ -291,29 +317,36 @@ export default function TripsScreen({ active, showScreen }) {
 
                   <div className="form-group" style={{ marginBottom: 12 }}>
                     <label>Favorites</label>
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8 }}>
-                      {FAVORITE_OPTIONS.map((opt) => {
-                        const activeFavorite = favorites.includes(opt.id);
-                        return (
-                          <button
-                            key={opt.id}
-                            type="button"
-                            onClick={() => toggleFavorite(opt.id)}
-                            style={{
-                              border: activeFavorite ? "1.5px solid var(--teal)" : "1.5px solid var(--gray-200)",
-                              borderRadius: 10,
-                              padding: "9px 8px",
-                              background: activeFavorite ? "var(--teal-light)" : "white",
-                              color: activeFavorite ? "var(--teal-dark)" : "var(--gray-600)",
-                              fontSize: 12,
-                              fontWeight: 700,
-                              cursor: "pointer",
-                            }}
-                          >
-                            {opt.label}
-                          </button>
-                        );
-                      })}
+                    <div style={{ display: "flex", flexDirection: "column", gap: 14, marginTop: 4 }}>
+                      {FAVORITE_CATEGORIES.map((category) => (
+                        <div key={category.title}>
+                          <div style={{ fontSize: 13, fontWeight: 600, color: "var(--gray-500)", marginBottom: 8 }}>{category.title}</div>
+                          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8 }}>
+                            {category.options.map((opt) => {
+                              const activeFavorite = favorites.includes(opt.id);
+                              return (
+                                <button
+                                  key={opt.id}
+                                  type="button"
+                                  onClick={() => toggleFavorite(opt.id)}
+                                  style={{
+                                    border: activeFavorite ? "1.5px solid var(--teal)" : "1.5px solid var(--gray-200)",
+                                    borderRadius: 10,
+                                    padding: "9px 8px",
+                                    background: activeFavorite ? "var(--teal-light)" : "white",
+                                    color: activeFavorite ? "var(--teal-dark)" : "var(--gray-600)",
+                                    fontSize: 12,
+                                    fontWeight: 700,
+                                    cursor: "pointer",
+                                  }}
+                                >
+                                  {opt.label}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   </div>
 
