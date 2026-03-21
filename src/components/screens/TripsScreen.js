@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import Sidebar from "../Sidebar";
 import { useAuth } from "@/context/AuthContext";
-import { generateTripPlan } from "@/lib/api";
+import { generateTripPlan, fetchPlaceCulture } from "@/lib/api";
 
 const FAVORITE_CATEGORIES = [
   {
@@ -94,6 +94,9 @@ export default function TripsScreen({ active, showScreen }) {
   const [aiSource, setAiSource] = useState("");
   const [loadingPlan, setLoadingPlan] = useState(false);
   const [error, setError] = useState("");
+  const [isEditing, setIsEditing] = useState(true);
+  const [cultureData, setCultureData] = useState({});
+  const [loadingCultureId, setLoadingCultureId] = useState(null);
 
   const mapEmbedUrl = useMemo(() => buildMapEmbedUrl(plannedStops), [plannedStops]);
   const listMapEmbedUrl = useMemo(() => buildMapEmbedUrl([]), []);
@@ -106,6 +109,25 @@ export default function TripsScreen({ active, showScreen }) {
 
   function toggleFavorite(id) {
     setFavorites((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
+  }
+
+  async function handleGetCulture(stopIdx, placeName) {
+    if (cultureData[stopIdx]) {
+      const newD = { ...cultureData };
+      delete newD[stopIdx];
+      setCultureData(newD);
+      return;
+    }
+    setLoadingCultureId(stopIdx);
+    try {
+      const data = await fetchPlaceCulture(token, placeName);
+      setCultureData(prev => ({ ...prev, [stopIdx]: data }));
+    } catch (err) {
+      console.error(err);
+      alert(err.message || "Failed to load insights");
+    } finally {
+      setLoadingCultureId(null);
+    }
   }
 
   async function handleGeneratePlan() {
@@ -139,6 +161,8 @@ export default function TripsScreen({ active, showScreen }) {
 
       setPlannedStops(Array.isArray(result?.stops) ? result.stops : []);
       setAiSource(result?.source || "gemini");
+      setCultureData({});
+      setIsEditing(false);
     } catch (e) {
       setError(e?.message || "Could not generate trip plan.");
     } finally {
@@ -285,19 +309,20 @@ export default function TripsScreen({ active, showScreen }) {
 
                   <div className="form-group" style={{ marginBottom: 12 }}>
                     <label>Trip name</label>
-                    <input value={tripName} onChange={(e) => setTripName(e.target.value)} placeholder="e.g., Sri Lanka Adventure" />
+                    <input value={tripName} onChange={(e) => setTripName(e.target.value)} placeholder="e.g., Sri Lanka Adventure" disabled={!isEditing || loadingPlan} />
                   </div>
 
                   <div className="grid-2">
                     <div className="form-group" style={{ marginBottom: 12 }}>
                       <label>Trip date</label>
-                      <input type="date" value={tripDate} onChange={(e) => setTripDate(e.target.value)} />
+                      <input type="date" value={tripDate} onChange={(e) => setTripDate(e.target.value)} disabled={!isEditing || loadingPlan} />
                     </div>
                     <div className="form-group" style={{ marginBottom: 12 }}>
                       <label>Number of stops</label>
                       <select
                         value={stopCount}
                         onChange={(e) => setStopCount(Number(e.target.value))}
+                        disabled={!isEditing || loadingPlan}
                         style={{
                           width: "100%",
                           border: "1px solid var(--gray-200)",
@@ -328,8 +353,10 @@ export default function TripsScreen({ active, showScreen }) {
                                 <button
                                   key={opt.id}
                                   type="button"
+                                  disabled={!isEditing || loadingPlan}
                                   onClick={() => toggleFavorite(opt.id)}
                                   style={{
+                                    opacity: (!isEditing || loadingPlan) ? 0.6 : 1,
                                     border: activeFavorite ? "1.5px solid var(--teal)" : "1.5px solid var(--gray-200)",
                                     borderRadius: 10,
                                     padding: "9px 8px",
@@ -353,16 +380,23 @@ export default function TripsScreen({ active, showScreen }) {
                   {error && <p style={{ color: "#dc2626", fontSize: 13, marginBottom: 8 }}>{error}</p>}
 
                   <div style={{ display: "flex", gap: 12, marginTop: 18 }}>
-                    <button type="button" className="btn-teal" style={{ flex: 1 }} onClick={handleGeneratePlan} disabled={loadingPlan}>
-                      {loadingPlan ? "Generating..." : "Generate Route with AI"}
-                    </button>
+                    {isEditing ? (
+                      <button type="button" className="btn-teal" style={{ flex: 1 }} onClick={handleGeneratePlan} disabled={loadingPlan}>
+                        {loadingPlan ? "Generating..." : "Generate Route with AI"}
+                      </button>
+                    ) : (
+                      <button type="button" className="btn-teal" style={{ flex: 1, background: "var(--gray-800)", border: "none" }} onClick={() => setIsEditing(true)}>
+                        ✎ Edit Details
+                      </button>
+                    )}
                     <button
                       type="button"
                       className="btn-teal"
                       style={{ width: "auto", padding: "14px 18px", background: "white", color: "var(--teal)", border: "1.5px solid var(--gray-200)" }}
                       onClick={() => setMode("list")}
+                      disabled={loadingPlan}
                     >
-                      {plannedStops.length > 0 ? "Done" : "Cancel"}
+                      {plannedStops.length > 0 && !isEditing ? "Done" : "Cancel"}
                     </button>
                   </div>
 
@@ -372,9 +406,44 @@ export default function TripsScreen({ active, showScreen }) {
                       <div style={{ display: "flex", flexDirection: "column", gap: 12, maxHeight: 380, overflowY: "auto", paddingRight: 8 }}>
                         {plannedStops.map((stop, i) => (
                            <div key={i} style={{ background: "var(--gray-50)", padding: 14, borderRadius: 12, border: "1px solid var(--gray-100)" }}>
-                             <div style={{ fontWeight: 800, color: "var(--teal-dark)" }}>{stop.stop_order}. {stop.name}</div>
-                             <div style={{ fontSize: 13, color: "var(--gray-500)", marginTop: 6, lineHeight: 1.4 }}>{stop.description}</div>
+                             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                               <div style={{ flex: 1 }}>
+                                  <div style={{ fontWeight: 800, color: "var(--teal-dark)" }}>{stop.stop_order}. {stop.name}</div>
+                                  <div style={{ fontSize: 13, color: "var(--gray-500)", marginTop: 6, lineHeight: 1.4 }}>{stop.description}</div>
+                               </div>
+                               <button 
+                                  onClick={() => handleGetCulture(stop.stop_order, stop.name)}
+                                  disabled={loadingCultureId === stop.stop_order}
+                                  style={{
+                                    border: "1px solid var(--teal)",
+                                    background: cultureData[stop.stop_order] ? "var(--teal)" : "transparent",
+                                    color: cultureData[stop.stop_order] ? "white" : "var(--teal)",
+                                    padding: "6px 10px",
+                                    borderRadius: 6,
+                                    fontSize: 12,
+                                    fontWeight: 700,
+                                    cursor: "pointer",
+                                    marginLeft: 12,
+                                    whiteSpace: "nowrap",
+                                    transition: "0.2s"
+                                  }}
+                               >
+                                  {loadingCultureId === stop.stop_order ? "..." : (cultureData[stop.stop_order] ? "Hide Info" : "📖 Insights")}
+                               </button>
+                             </div>
                              {stop.stop_note && <div style={{ fontSize: 12, color: "var(--teal)", marginTop: 8, fontWeight: 600 }}>💡 {stop.stop_note}</div>}
+                             
+                             {cultureData[stop.stop_order] && (
+                               <div style={{ marginTop: 12, borderTop: "1px dashed var(--gray-200)", paddingTop: 12, animation: "fadeIn 0.3s" }}>
+                                 <h5 style={{ fontSize: 13, marginBottom: 8, color: "var(--gray-800)" }}>Local Culture & Seasons:</h5>
+                                 <div style={{ fontSize: 12, color: "var(--gray-600)", display: "flex", flexDirection: "column", gap: 6 }}>
+                                    <div><strong>👕 Dress Code:</strong> {cultureData[stop.stop_order].dress_code}</div>
+                                    <div><strong>🛑 Behavior Rules:</strong> {cultureData[stop.stop_order].behavior_rules}</div>
+                                    <div><strong>🌤️ Best Season:</strong> {cultureData[stop.stop_order].best_season}</div>
+                                    <div><strong>🏛️ Context:</strong> {cultureData[stop.stop_order].historical_context}</div>
+                                 </div>
+                               </div>
+                             )}
                            </div>
                         ))}
                       </div>
