@@ -1,6 +1,6 @@
-﻿"use client";
+"use client";
 
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useLayoutEffect, useState } from "react";
 import {
   onAuthStateChanged,
   signInWithEmailAndPassword,
@@ -9,8 +9,24 @@ import {
 } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { saveUserProfile, refreshRecommendations } from "@/lib/api";
+import {
+  ADMIN_EMAIL,
+  isDevAdminSessionStored,
+  persistDevAdminSession,
+  clearDevAdminSession,
+} from "@/lib/adminAuth";
 
 const AuthContext = createContext(null);
+
+function createDevAdminUser() {
+  return {
+    uid: "ride-lanka-admin",
+    email: ADMIN_EMAIL,
+    displayName: "Administrator",
+    isDevAdmin: true,
+    getIdToken: async () => null,
+  };
+}
 
 function toFriendlyAuthError(error, mode) {
   const code = error?.code || "";
@@ -42,15 +58,29 @@ export function AuthProvider({ children }) {
   const [token, setToken] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  // Restore demo admin before paint so /admin never briefly sees user=null (avoids false redirect)
+  useLayoutEffect(() => {
+    if (typeof window === "undefined") return;
+    if (!isDevAdminSessionStored()) return;
+    setUser(createDevAdminUser());
+    setToken(null);
+  }, []);
+
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
+        clearDevAdminSession();
         const idToken = await firebaseUser.getIdToken();
         setUser(firebaseUser);
         setToken(idToken);
       } else {
-        setUser(null);
-        setToken(null);
+        if (isDevAdminSessionStored()) {
+          setUser(createDevAdminUser());
+          setToken(null);
+        } else {
+          setUser(null);
+          setToken(null);
+        }
       }
       setLoading(false);
     });
@@ -70,8 +100,20 @@ export function AuthProvider({ children }) {
   }, [user]);
 
   async function signIn(email, password) {
+    const e = (email || "").trim().toLowerCase();
+    // Patched demo admin: same auth UI, no Firebase user required
+    const pass = typeof password === "string" ? password.trim() : password;
+    if (e === ADMIN_EMAIL.toLowerCase() && pass === "admin123") {
+      persistDevAdminSession();
+      const adminUser = createDevAdminUser();
+      setUser(adminUser);
+      setToken(null);
+      return adminUser;
+    }
+
     try {
       const cred = await signInWithEmailAndPassword(auth, email, password);
+      clearDevAdminSession();
       const idToken = await cred.user.getIdToken();
       setUser(cred.user);
       setToken(idToken);
@@ -103,6 +145,7 @@ export function AuthProvider({ children }) {
   }
 
   async function logOut() {
+    clearDevAdminSession();
     await signOut(auth);
     setUser(null);
     setToken(null);

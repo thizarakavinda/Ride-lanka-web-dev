@@ -1,9 +1,12 @@
-﻿"use client";
+"use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
+import { isAdminEmail } from "@/lib/adminAuth";
 
 export default function LoginForm({ onSignIn }) {
+  const router = useRouter();
   const { signIn } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -18,7 +21,11 @@ export default function LoginForm({ onSignIn }) {
     setLoading(true);
     setError("");
     try {
-      await signIn(email, password);
+      const signedInUser = await signIn(email, password);
+      if (isAdminEmail(signedInUser?.email)) {
+        router.push("/admin");
+        return;
+      }
       onSignIn();
     } catch (e) {
       setError(e.message || "Sign in failed. Check your credentials.");
