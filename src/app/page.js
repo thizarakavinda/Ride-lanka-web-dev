@@ -13,6 +13,7 @@ import {
   NotificationsScreen,
   SettingsScreen,
   QuestsScreen,
+  ExploreScreen,
 } from "@/components/screens";
 
 export default function Home() {
@@ -44,6 +45,7 @@ export default function Home() {
       <NotificationsScreen active={activeScreen === "screen-notif"} showScreen={showScreen} />
       <SettingsScreen active={activeScreen === "screen-settings"} showScreen={showScreen} />
       <QuestsScreen active={activeScreen === "screen-quests"} showScreen={showScreen} />
+      <ExploreScreen active={activeScreen === "screen-explore"} showScreen={showScreen} />
     </div>
   );
 }

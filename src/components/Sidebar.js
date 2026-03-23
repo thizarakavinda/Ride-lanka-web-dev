@@ -32,7 +32,7 @@ export default function Sidebar({
         </div>
         <div
           className={`nav-item ${activeItem === "explore" ? "active" : ""}`}
-          onClick={nav("screen-home")}
+          onClick={nav("screen-explore")}
           role="button"
           tabIndex={0}
         >

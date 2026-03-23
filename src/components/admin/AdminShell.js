@@ -2,13 +2,14 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { getQuests, createQuest, deleteQuest } from "@/lib/api";
+import { getQuests, createQuest, deleteQuest, getExplorePlaces, createExplorePlace, deleteExplorePlace } from "@/lib/api";
 
 const NAV = [
   { id: "dashboard", label: "Dashboard", icon: "📊" },
   { id: "quests", label: "Quests", icon: "🎯" },
   { id: "users", label: "Users", icon: "👥" },
   { id: "trips", label: "Trips & routes", icon: "🗺️" },
+  { id: "explore", label: "Explore CMS", icon: "📰" },
   { id: "engagement", label: "Engagement", icon: "💬" },
   { id: "settings", label: "System", icon: "⚙️" },
 ];
@@ -71,6 +72,7 @@ export default function AdminShell({ user, onLogout }) {
           {section === "quests" && <AdminQuests />}
           {section === "users" && <AdminUsers />}
           {section === "trips" && <AdminTrips />}
+          {section === "explore" && <AdminExploreCMS />}
           {section === "engagement" && <AdminEngagement />}
           {section === "settings" && <AdminSettings />}
         </main>
@@ -349,6 +351,178 @@ function AdminSettings() {
         Configure API keys, feature flags, and maintenance mode here in a future iteration. Admin access is restricted
         to <strong>admin@gmail.com</strong> after sign-in from the same auth screen as travelers.
       </p>
+    </div>
+  );
+}
+
+function AdminExploreCMS() {
+  const [places, setPlaces] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  
+  const [isCreating, setIsCreating] = useState(false);
+  const [formData, setFormData] = useState({ title: "", snippet: "", content: "", image: "" });
+
+  useEffect(() => {
+    loadPlaces();
+  }, []);
+
+  async function loadPlaces() {
+    try {
+      setLoading(true);
+      const res = await getExplorePlaces("dev-admin-token");
+      setPlaces(res.places || []);
+    } catch (err) {
+      console.error(err);
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function handleFileChange(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      setFormData(prev => ({ ...prev, image: ev.target.result }));
+    };
+    reader.readAsDataURL(file);
+  }
+
+  async function handleCreate(e) {
+    e.preventDefault();
+    if (isCreating) return;
+    if (!formData.title || !formData.snippet || !formData.content) return;
+    try {
+      setIsCreating(true);
+      await createExplorePlace("dev-admin-token", formData);
+      setFormData({ title: "", snippet: "", content: "", image: "" });
+      
+      // Clear file input visually
+      const fileInput = document.getElementById("explore-img-upload");
+      if (fileInput) fileInput.value = "";
+      
+      await loadPlaces();
+    } catch (err) {
+      alert("Failed to create post: " + err.message);
+    } finally {
+      setIsCreating(false);
+    }
+  }
+
+  async function handleDelete(id) {
+    if (!window.confirm("Are you sure you want to delete this post?")) return;
+    try {
+      await deleteExplorePlace("dev-admin-token", id);
+      await loadPlaces();
+    } catch (err) {
+      alert("Failed to delete post: " + err.message);
+    }
+  }
+
+  return (
+    <div className="admin-panel">
+      <h2>Explore Sri Lanka CMS</h2>  
+      <p style={{ color: "#64748b", marginBottom: 20 }}>
+        Manage articles for the Explore destination grid. Adding new articles pushes them immediately to users' feeds.
+      </p>
+
+      <form className="admin-form" onSubmit={handleCreate} style={{ display: "flex", flexDirection: "column", gap: "12px", marginBottom: "32px", background: "#f8fafc", padding: "20px", borderRadius: "8px" }}>
+        
+        <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
+          <input 
+            type="text" 
+            placeholder="Post Title (e.g. Ruwanwelisaya)" 
+            value={formData.title} 
+            onChange={e => setFormData({ ...formData, title: e.target.value })} 
+            style={{ flex: "1 1 200px", padding: "8px" }}
+            required
+          />
+          <input 
+            type="text" 
+            placeholder="Short Snippet (displayed on grid card)" 
+            value={formData.snippet} 
+            onChange={e => setFormData({ ...formData, snippet: e.target.value })} 
+            style={{ flex: "2 1 300px", padding: "8px" }}
+            required
+          />
+        </div>
+
+        <textarea 
+          placeholder="Full Article Content..." 
+          value={formData.content} 
+          onChange={e => setFormData({ ...formData, content: e.target.value })} 
+          style={{ width: "100%", padding: "10px", minHeight: "100px", resize: "vertical", fontFamily: "inherit" }}
+          required
+        />
+
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "12px" }}>
+          <div>
+            <label style={{ fontSize: "0.85rem", color: "#64748b", display: "block", marginBottom: "4px" }}>Cover Image (PNG/JPG)</label>
+            <input 
+              id="explore-img-upload"
+              type="file" 
+              accept="image/png, image/jpeg" 
+              onChange={handleFileChange}
+              style={{ padding: "4px", fontSize: "0.9rem" }}
+            />
+            {formData.image && (
+              <img src={formData.image} alt="Preview" style={{ height: "40px", width: "80px", objectFit: "cover", marginLeft: "12px", borderRadius: "4px", verticalAlign: "middle" }} />
+            )}
+          </div>
+          
+          <button type="submit" disabled={isCreating} className="admin-btn-solid" style={{ background: "#4f46e5", color: "white", padding: "10px 24px", border: "none", borderRadius: "6px", cursor: "pointer", fontWeight: "bold" }}>
+            {isCreating ? "Publishing..." : "Publish Post"}
+          </button>
+        </div>
+      </form>
+
+      {error && <p style={{ color: "red" }}>{error}</p>}
+      
+      {loading ? <p>Loading articles...</p> : (
+        <div className="admin-table-wrap">
+          <table className="admin-table">
+            <thead>
+              <tr>
+                <th>Title</th>
+                <th>Snippet</th>
+                <th>Created</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {places.length === 0 ? (
+                <tr><td colSpan="4">No articles found. Initializing missing...</td></tr>
+              ) : (
+                places.map(p => (
+                  <tr key={p.id}>
+                    <td>
+                      <div style={{ display: "flex", alignItems: "center", gap: "12px", minWidth: "180px" }}>
+                        {p.image && (
+                          <img src={p.image} alt="cover" style={{ width: 48, height: 32, borderRadius: 4, objectFit: "cover" }} />
+                        )}
+                        <strong>{p.title}</strong>
+                      </div>
+                    </td>
+                    <td><div style={{ maxWidth: "300px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.snippet}</div></td>
+                    <td>{new Date(p.createdAt || new Date()).toLocaleDateString()}</td>
+                    <td>
+                      <button 
+                        onClick={() => handleDelete(p.id)}
+                        className="admin-btn-outline" 
+                        style={{ border: "1px solid #ef4444", color: "#ef4444", padding: "4px 8px", fontSize: "0.8rem", cursor: "pointer" }}
+                      >
+                        Delete
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }

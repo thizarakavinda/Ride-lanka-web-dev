@@ -197,3 +197,35 @@ export async function completeQuest(token, questId) {
     if (!res.ok) throw new Error(await res.text());
     return res.json();
 }
+
+// ─── Explore Places (CMS) ──────────────────────────────────────────────────
+
+export async function getExplorePlaces(token) {
+    const url = `${BACKEND}/api/explore`;
+    const res = await safeFetch(url, {
+        headers: await authHeaders(token),
+    });
+    if (!res.ok) throw new Error(await res.text());
+    return res.json(); // { places: [] }
+}
+
+export async function createExplorePlace(token, { title, snippet, content, image }) {
+    const url = `${BACKEND}/api/explore`;
+    const res = await safeFetch(url, {
+        method: "POST",
+        headers: await authHeaders(token),
+        body: JSON.stringify({ title, snippet, content, image }),
+    });
+    if (!res.ok) throw new Error(await res.text());
+    return res.json();
+}
+
+export async function deleteExplorePlace(token, placeId) {
+    const url = `${BACKEND}/api/explore/${placeId}`;
+    const res = await safeFetch(url, {
+        method: "DELETE",
+        headers: await authHeaders(token),
+    });
+    if (!res.ok) throw new Error(await res.text());
+    return res.json();
+}
