@@ -12,6 +12,7 @@ import {
   CommunityScreen,
   NotificationsScreen,
   SettingsScreen,
+  QuestsScreen,
 } from "@/components/screens";
 
 export default function Home() {
@@ -42,6 +43,7 @@ export default function Home() {
       <CommunityScreen active={activeScreen === "screen-community"} showScreen={showScreen} />
       <NotificationsScreen active={activeScreen === "screen-notif"} showScreen={showScreen} />
       <SettingsScreen active={activeScreen === "screen-settings"} showScreen={showScreen} />
+      <QuestsScreen active={activeScreen === "screen-quests"} showScreen={showScreen} />
     </div>
   );
 }

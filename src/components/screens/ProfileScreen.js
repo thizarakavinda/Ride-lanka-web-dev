@@ -22,7 +22,18 @@ export default function ProfileScreen({ active, showScreen }) {
           <div style={{ marginTop: 24 }}>
             <p><strong>Name:</strong> {displayName}</p>
             <p><strong>Email:</strong> {user?.email || "-"}</p>
-            <button className="btn-teal" style={{ marginTop: 16 }} onClick={handleLogout}>Sign Out</button>
+
+            <div style={{ marginTop: 32, padding: 24, background: "var(--bg-card)", borderRadius: 12, border: "1px solid var(--border-color)" }}>
+              <h2 style={{ fontSize: "1.2rem", marginBottom: 8 }}>Traveler Quests</h2>
+              <p style={{ color: "var(--text-light)", marginBottom: 16 }}>
+                View and complete available quests to earn rewards!
+              </p>
+              <button className="btn-primary" onClick={() => showScreen("screen-quests")}>
+                View Quests
+              </button>
+            </div>
+
+            <button className="btn-teal" style={{ marginTop: 32 }} onClick={handleLogout}>Sign Out</button>
           </div>
         </div>
       </div>

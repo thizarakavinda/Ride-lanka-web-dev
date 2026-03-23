@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
+import { getQuests, createQuest, deleteQuest } from "@/lib/api";
 
 const NAV = [
   { id: "dashboard", label: "Dashboard", icon: "📊" },
@@ -117,14 +118,133 @@ function AdminDashboard() {
 }
 
 function AdminQuests() {
+  const [quests, setQuests] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  
+  const [isCreating, setIsCreating] = useState(false);
+  const [formData, setFormData] = useState({ title: "", description: "", reward: "" });
+
+  useEffect(() => {
+    loadQuests();
+  }, []);
+
+  async function loadQuests() {
+    try {
+      setLoading(true);
+      const token = await window.authContextTokenGetter?.(); // Hack to get token if needed, wait.
+      const res = await getQuests("dev-admin-token"); // using demo token for now based on Admin access
+      setQuests(res.quests || []);
+    } catch (err) {
+      console.error(err);
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleCreate(e) {
+    e.preventDefault();
+    if (isCreating) return;
+    if (!formData.title || !formData.description) return;
+    try {
+      setIsCreating(true);
+      await createQuest("dev-admin-token", formData);
+      setFormData({ title: "", description: "", reward: "" });
+      await loadQuests();
+    } catch (err) {
+      alert("Failed to create quest: " + err.message);
+    } finally {
+      setIsCreating(false);
+    }
+  }
+
+  async function handleDelete(id) {
+    if (!window.confirm("Are you sure you want to delete this quest?")) return;
+    try {
+      await deleteQuest("dev-admin-token", id);
+      await loadQuests();
+    } catch (err) {
+      alert("Failed to delete quest: " + err.message);
+    }
+  }
+
   return (
     <div className="admin-panel">
-      <h2>Quests & challenges</h2>  
-      <p className="admin-placeholder">
-        Quests are a fun way to gamify travel. Create, edit, and retire quests here in a future iteration. Connect to
-        a <code style={{ background: "#f1f5f9", padding: "2px 6px", borderRadius: 4 }}>/api/quests</code> endpoint to manage
-        quest data stored in Firestore.
+      <h2>Quests & Challenges</h2>  
+      <p style={{ color: "#64748b", marginBottom: 20 }}>
+        Create and manage broadcast quests for travelers.
       </p>
+
+      <form className="admin-form" onSubmit={handleCreate} style={{ display: "flex", gap: "12px", marginBottom: "32px", flexWrap: "wrap", background: "#f8fafc", padding: "16px", borderRadius: "8px" }}>
+        <input 
+          type="text" 
+          placeholder="Quest Title" 
+          value={formData.title} 
+          onChange={e => setFormData({ ...formData, title: e.target.value })} 
+          style={{ flex: "1 1 200px", padding: "8px" }}
+          required
+        />
+        <input 
+          type="text" 
+          placeholder="Description" 
+          value={formData.description} 
+          onChange={e => setFormData({ ...formData, description: e.target.value })} 
+          style={{ flex: "2 1 300px", padding: "8px" }}
+          required
+        />
+        <input 
+          type="text" 
+          placeholder="Reward (e.g. 100 XP)" 
+          value={formData.reward} 
+          onChange={e => setFormData({ ...formData, reward: e.target.value })} 
+          style={{ flex: "1 1 150px", padding: "8px" }}
+        />
+        <button type="submit" disabled={isCreating} className="admin-btn-solid" style={{ background: "#0d9488", color: "white", padding: "8px 16px", border: "none", borderRadius: "4px", cursor: "pointer" }}>
+          {isCreating ? "Adding..." : "+ Create Quest"}
+        </button>
+      </form>
+
+      {error && <p style={{ color: "red" }}>{error}</p>}
+      
+      {loading ? <p>Loading quests...</p> : (
+        <div className="admin-table-wrap">
+          <table className="admin-table">
+            <thead>
+              <tr>
+                <th>Title</th>
+                <th>Description</th>
+                <th>Reward</th>
+                <th>Created</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {quests.length === 0 ? (
+                <tr><td colSpan="4">No quests found. Create one above!</td></tr>
+              ) : (
+                quests.map(q => (
+                  <tr key={q.id}>
+                    <td><strong>{q.title}</strong></td>
+                    <td>{q.description}</td>
+                    <td><span className="admin-badge admin-badge-teal">{q.reward}</span></td>
+                    <td>{new Date(q.createdAt).toLocaleDateString()}</td>
+                    <td>
+                      <button 
+                        onClick={() => handleDelete(q.id)}
+                        className="admin-btn-outline" 
+                        style={{ border: "1px solid #ef4444", color: "#ef4444", padding: "4px 8px", fontSize: "0.8rem", cursor: "pointer" }}
+                      >
+                        Delete
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }

@@ -24,7 +24,7 @@ function createDevAdminUser() {
     email: ADMIN_EMAIL,
     displayName: "Administrator",
     isDevAdmin: true,
-    getIdToken: async () => null,
+    getIdToken: async () => "dev-admin-token",
   };
 }
 
