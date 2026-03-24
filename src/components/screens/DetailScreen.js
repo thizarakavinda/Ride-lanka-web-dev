@@ -1,14 +1,16 @@
 "use client";
 
 import Sidebar from "../Sidebar";
+import { useSettings } from "@/context/SettingsContext";
 
 export default function DetailScreen({ active, showScreen }) {
+  const { t } = useSettings();
   return (
     <div id="screen-detail" className={`screen ${active ? "active" : ""}`}>
       <div className="main-layout">
-        <Sidebar activeItem="explore" logoIcon="🌍" logoText="Dream" logoEm="Trip" userName="Sithil Semitha" userRole="Explorer · Pro" onNavigate={showScreen} />
+        <Sidebar activeItem="explore" logoIcon="🌍" logoText="Dream" logoEm="Trip" userName="Sithil Semitha" userRole={t("appRoleExplorerPro")} onNavigate={showScreen} />
         <div className="main-content">
-          <div className="back-btn" onClick={() => showScreen("screen-home")} role="button" tabIndex={0}>← Back to Explore</div>
+          <div className="back-btn" onClick={() => showScreen("screen-home")} role="button" tabIndex={0}>{t("detailBackToExplore")}</div>
           <div className="detail-layout">
             <div className="detail-main">
               <div className="detail-images">
@@ -89,9 +91,9 @@ export default function DetailScreen({ active, showScreen }) {
                   <div className="booking-row"><span>Service fee</span><span>$89</span></div>
                   <div className="booking-row booking-total"><span>Total</span><span>$1,704</span></div>
                 </div>
-                <button type="button" className="btn-teal">Book Now</button>
+                <button type="button" className="btn-teal">{t("detailBookNow")}</button>
                 <div style={{ textAlign: "center", marginTop: 12, fontSize: 12, color: "var(--gray-400)" }}>You won&apos;t be charged yet</div>
-                <button type="button" style={{ width: "100%", marginTop: 10, padding: 12, border: "1.5px solid var(--teal)", background: "transparent", color: "var(--teal)", borderRadius: "var(--radius-sm)", fontWeight: 600, cursor: "pointer", fontFamily: "'DM Sans',sans-serif", fontSize: 14 }}>Add to Wishlist ❤️</button>
+                <button type="button" style={{ width: "100%", marginTop: 10, padding: 12, border: "1.5px solid var(--teal)", background: "transparent", color: "var(--teal)", borderRadius: "var(--radius-sm)", fontWeight: 600, cursor: "pointer", fontFamily: "'DM Sans',sans-serif", fontSize: 14 }}>{t("detailAddToWishlist")}</button>
               </div>
             </div>
           </div>

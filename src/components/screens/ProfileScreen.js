@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Sidebar from "../Sidebar";
 import { useAuth } from "@/context/AuthContext";
 import { getUserProfile, saveUserProfile } from "@/lib/api";
+import { useSettings } from "@/context/SettingsContext";
 
 function getLevelDetails(xp) {
   const x = xp || 0;
@@ -21,6 +22,7 @@ function getLevelDetails(xp) {
 
 export default function ProfileScreen({ active, showScreen }) {
   const { user, token, logOut, updateUserEmail, updateUserPassword } = useAuth();
+  const { t } = useSettings();
   const [profile, setProfile] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -115,14 +117,14 @@ export default function ProfileScreen({ active, showScreen }) {
   return (
     <div id="screen-profile" className={`screen ${active ? "active" : ""}`}>
       <div className="main-layout">
-        <Sidebar activeItem="profile" userName={displayName} userRole="Trip planner for Sri Lanka" onNavigate={showScreen} />
+        <Sidebar activeItem="profile" userName={displayName} userRole={t("appRoleTripPlanner")} onNavigate={showScreen} />
         <div className="main-content">
           <div className="topbar">
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%" }}>
-              <h1>Profile</h1>
+              <h1>{t("profileTitle")}</h1>
               {!isEditing && (
                 <button className="btn-primary" onClick={handleEditClick} style={{ padding: "8px 16px", fontSize: "0.95rem", background: "var(--teal)", color: "white", border: "none", borderRadius: "8px", cursor: "pointer", fontWeight: "bold" }}>
-                  ✎ Edit Profile
+                  ✎ {t("profileEdit")}
                 </button>
               )}
             </div>
@@ -218,7 +220,7 @@ export default function ProfileScreen({ active, showScreen }) {
               <div style={{ 
                 marginTop: 24, 
                 padding: "24px", 
-                background: "white", 
+                background: "var(--white)", 
                 borderRadius: 12, 
                 boxShadow: "var(--shadow-sm)",
                 border: `3px solid ${getLevelDetails(profile.xp).color}`
@@ -227,7 +229,7 @@ export default function ProfileScreen({ active, showScreen }) {
                   <h2 style={{ fontSize: "1.4rem", margin: 0, color: getLevelDetails(profile.xp).color, display: "flex", alignItems: "center", gap: "8px" }}>
                     Level {getLevelDetails(profile.xp).level} Traveler
                   </h2>
-                  <div style={{ background: "var(--teal-light)", color: "var(--teal-dark)", padding: "6px 16px", borderRadius: 20, fontWeight: "bold", fontSize: "1.1rem" }}>
+                  <div style={{ background: "var(--teal-light)", color: "var(--teal-dark)", padding: "6px 16px", borderRadius: 20, fontWeight: "bold", fontSize: "1.1rem", border: "1px solid var(--gray-100)" }}>
                     {profile.xp || 0} XP
                   </div>
                 </div>
@@ -238,7 +240,7 @@ export default function ProfileScreen({ active, showScreen }) {
                       <span>Progress to Level {getLevelDetails(profile.xp).level + 1}</span>
                       <span>{profile.xp || 0} / {getLevelDetails(profile.xp).nextMin} XP</span>
                     </div>
-                    <div style={{ width: "100%", height: "10px", background: "var(--gray-100)", borderRadius: "10px", overflow: "hidden" }}>
+                    <div style={{ width: "100%", height: "10px", background: "var(--gray-100)", borderRadius: "10px", overflow: "hidden", border: "1px solid var(--gray-200)" }}>
                       <div style={{ 
                         height: "100%", 
                         background: getLevelDetails(profile.xp).color, 
@@ -266,17 +268,17 @@ export default function ProfileScreen({ active, showScreen }) {
               </div>
             )}
 
-            <div style={{ marginTop: 32, padding: 24, background: "var(--bg-card)", borderRadius: 12, border: "1px solid var(--border-color)" }}>
-              <h2 style={{ fontSize: "1.2rem", marginBottom: 8 }}>Traveler Quests</h2>
-              <p style={{ color: "var(--text-light)", marginBottom: 16 }}>
-                View and complete available quests to earn rewards!
+            <div style={{ marginTop: 32, padding: 24, background: "var(--white)", borderRadius: 12, border: "1px solid var(--gray-100)", boxShadow: "var(--shadow-sm)" }}>
+              <h2 style={{ fontSize: "1.2rem", marginBottom: 8, color: "var(--text)" }}>{t("profileTravelerQuests")}</h2>
+              <p style={{ color: "var(--gray-600)", marginBottom: 16 }}>
+                {t("profileTravelerQuestsDesc")}
               </p>
               <button className="btn-primary" onClick={() => showScreen("screen-quests")}>
-                View Quests
+                {t("profileViewQuests")}
               </button>
             </div>
 
-            <button className="btn-logout-small" onClick={handleLogout}>Sign Out</button>
+            <button className="btn-logout-small" onClick={handleLogout}>{t("profileSignOut")}</button>
           </div>
         </div>
       </div>

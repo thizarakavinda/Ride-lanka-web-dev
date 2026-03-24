@@ -5,6 +5,7 @@ export default function SettingsScreen({ active, showScreen }) {
   const { 
     theme, setTheme, 
     language, setLanguage, 
+    t,
     notifications, setNotifications,
     privacy, setPrivacy 
   } = useSettings();
@@ -23,13 +24,13 @@ export default function SettingsScreen({ active, showScreen }) {
         <Sidebar 
           activeItem="settings" 
           userName="Sithil Semitha" 
-          userRole="Trip planner for Sri Lanka" 
+          userRole={t("appRoleTripPlanner")} 
           onNavigate={showScreen} 
         />
         <div className="main-content">
         <div className="topbar">
-          <h1>Settings</h1>
-          <p className="topbar-subtitle">Manage your account preferences and application experience.</p>
+          <h1>{t("settingsTitle")}</h1>
+          <p className="topbar-subtitle">{t("settingsSubtitle")}</p>
         </div>
 
         <div className="settings-grid">
@@ -38,8 +39,8 @@ export default function SettingsScreen({ active, showScreen }) {
             <div className="card-header">
               <span className="icon">🎨</span>
               <div>
-                <h3>Appearance</h3>
-                <p>Customize how Ride-Lanka looks on your device.</p>
+                <h3>{t("appearanceTitle")}</h3>
+                <p>{t("appearanceDesc")}</p>
               </div>
             </div>
             <div className="card-body">
@@ -48,19 +49,19 @@ export default function SettingsScreen({ active, showScreen }) {
                   className={`theme-btn ${theme === "light" ? "active" : ""}`}
                   onClick={() => setTheme("light")}
                 >
-                  <span className="icon">☀️</span> Light
+                  <span className="icon">☀️</span> {t("themeLight")}
                 </button>
                 <button 
                   className={`theme-btn ${theme === "dark" ? "active" : ""}`}
                   onClick={() => setTheme("dark")}
                 >
-                  <span className="icon">🌙</span> Dark
+                  <span className="icon">🌙</span> {t("themeDark")}
                 </button>
                 <button 
                   className={`theme-btn ${theme === "system" ? "active" : ""}`}
                   onClick={() => setTheme("system")}
                 >
-                  <span className="icon">💻</span> System
+                  <span className="icon">💻</span> {t("themeSystem")}
                 </button>
               </div>
             </div>
@@ -71,8 +72,8 @@ export default function SettingsScreen({ active, showScreen }) {
             <div className="card-header">
               <span className="icon">🌐</span>
               <div>
-                <h3>Language</h3>
-                <p>Select your preferred language for the interface.</p>
+                <h3>{t("languageTitle")}</h3>
+                <p>{t("languageDesc")}</p>
               </div>
             </div>
             <div className="card-body">
@@ -93,15 +94,15 @@ export default function SettingsScreen({ active, showScreen }) {
             <div className="card-header">
               <span className="icon">🔔</span>
               <div>
-                <h3>Notifications</h3>
-                <p>Control which alerts you want to receive.</p>
+                <h3>{t("notificationsTitle")}</h3>
+                <p>{t("notificationsDesc")}</p>
               </div>
             </div>
             <div className="card-body">
               <div className="setting-item">
                 <div className="label-group">
-                  <span className="item-title">Email Notifications</span>
-                  <p className="item-desc">Receive trip summaries and recommendations via email.</p>
+                  <span className="item-title">{t("emailNotificationsTitle")}</span>
+                  <p className="item-desc">{t("emailNotificationsDesc")}</p>
                 </div>
                 <label className="switch">
                   <input type="checkbox" checked={notifications.email} onChange={() => toggleNotif("email")} />
@@ -110,8 +111,8 @@ export default function SettingsScreen({ active, showScreen }) {
               </div>
               <div className="setting-item">
                 <div className="label-group">
-                  <span className="item-title">Push Notifications</span>
-                  <p className="item-desc">Get real-time alerts for travel updates and badges.</p>
+                  <span className="item-title">{t("pushNotificationsTitle")}</span>
+                  <p className="item-desc">{t("pushNotificationsDesc")}</p>
                 </div>
                 <label className="switch">
                   <input type="checkbox" checked={notifications.push} onChange={() => toggleNotif("push")} />
@@ -126,15 +127,15 @@ export default function SettingsScreen({ active, showScreen }) {
             <div className="card-header">
               <span className="icon">🔒</span>
               <div>
-                <h3>Security & Privacy</h3>
-                <p>Manage your account visibility and data tracking.</p>
+                <h3>{t("privacyTitle")}</h3>
+                <p>{t("privacyDesc")}</p>
               </div>
             </div>
             <div className="card-body">
               <div className="setting-item">
                 <div className="label-group">
-                  <span className="item-title">Public Profile</span>
-                  <p className="item-desc">Allow others to see your traveler level and badges.</p>
+                  <span className="item-title">{t("publicProfileTitle")}</span>
+                  <p className="item-desc">{t("publicProfileDesc")}</p>
                 </div>
                 <label className="switch">
                   <input type="checkbox" checked={privacy.publicProfile} onChange={() => togglePrivacy("publicProfile")} />
@@ -143,8 +144,8 @@ export default function SettingsScreen({ active, showScreen }) {
               </div>
               <div className="setting-item">
                 <div className="label-group">
-                  <span className="item-title">Activity Tracking</span>
-                  <p className="item-desc">Use your travel behavior to improve AI recommendations.</p>
+                  <span className="item-title">{t("activityTrackingTitle")}</span>
+                  <p className="item-desc">{t("activityTrackingDesc")}</p>
                 </div>
                 <label className="switch">
                   <input type="checkbox" checked={privacy.tracking} onChange={() => togglePrivacy("tracking")} />
