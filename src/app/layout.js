@@ -1,5 +1,6 @@
-﻿import "./globals.css";
+import "./globals.css";
 import { AuthProvider } from "@/context/AuthContext";
+import { WishlistProvider } from "@/context/WishlistContext";
 
 export const metadata = {
   title: "Ride Lanka - Trip Planner",
@@ -18,7 +19,7 @@ export default function RootLayout({ children }) {
         />
       </head>
       <body className="antialiased">
-        <AuthProvider>{children}</AuthProvider>
+        <AuthProvider><WishlistProvider>{children}</WishlistProvider></AuthProvider>
       </body>
     </html>
   );
