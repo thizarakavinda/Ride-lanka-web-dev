@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import Sidebar from "../Sidebar";
 import { useAuth } from "@/context/AuthContext";
 import { useWishlist } from "@/context/WishlistContext";
+import { useSettings } from "@/context/SettingsContext";
 import { getRecommendations, refreshRecommendations, trackEvent, fetchPlaceCulture } from "@/lib/api";
 
 import highlandtain from "../assets/Highland Train Journey.jpg";
@@ -36,6 +37,7 @@ function WishlistBtn({ card }) {
 }
 
 function AiPlaceCard({ place, token, showScreen }) {
+  const { t } = useSettings();
   const fallbackImg = `https://source.unsplash.com/400x220/?${encodeURIComponent(place.name + " Sri Lanka")}`;
 
   function handleClick() {
@@ -69,7 +71,7 @@ function AiPlaceCard({ place, token, showScreen }) {
         <div className="card-location">{place.description}</div>
         <div className="card-footer">
           <span className="card-rating">{place.rating ? `Rating ${place.rating}` : ""}</span>
-          <span className="card-price">Open map</span>
+          <span className="card-price">{t("homeOpenMap")}</span>
         </div>
       </div>
     </div>
@@ -77,6 +79,7 @@ function AiPlaceCard({ place, token, showScreen }) {
 }
 
 function AiRecommendationsSection({ token, showScreen }) {
+  const { t } = useSettings();
   const [places, setPlaces] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -95,7 +98,7 @@ function AiRecommendationsSection({ token, showScreen }) {
         setPlaces(fresh.recommendations || []);
       }
     } catch {
-      setError("Could not load recommendations. Ensure backend and AI are running.");
+      setError(t("homeRecommendationsError"));
     } finally {
       setLoading(false);
     }
@@ -113,22 +116,22 @@ function AiRecommendationsSection({ token, showScreen }) {
       const fresh = await refreshRecommendations(token);
       setPlaces(fresh.recommendations || []);
     } catch {
-      setError("Refresh failed.");
+      setError(t("homeRefreshFailed"));
     } finally {
       setRefreshing(false);
     }
   }
 
-  if (loading) return <p style={{ color: "#666" }}>Loading recommendations...</p>;
+  if (loading) return <p style={{ color: "var(--gray-600)" }}>{t("homeLoadingRecommendations")}</p>;
   if (error) return <p style={{ color: "#c00" }}>{error}</p>;
   if (places.length === 0) return null;
 
   return (
     <>
       <div className="section-header">
-        <h3>Recommended for you by AI</h3>
+        <h3>{t("homeRecommended")}</h3>
         <span className="see-all" role="button" tabIndex={0} onClick={handleRefresh}>
-          {refreshing ? "Refreshing..." : "Refresh AI"}
+          {refreshing ? t("homeRefreshing") : t("homeRefreshAI")}
         </span>
       </div>
       <div className="cards-grid">
@@ -247,6 +250,7 @@ function HomePlaceDetail({ place, token, onClose }) {
 
 export default function HomeScreen({ active, showScreen }) {
 const [activeCategory, setActiveCategory] = useState("beach");
+  const { t } = useSettings();
   const [selectedHomePlace, setSelectedHomePlace] = useState(null);
   const { token, user } = useAuth();
   const displayName = useMemo(() => user?.displayName || user?.email?.split("@")[0] || "traveler", [user]);
@@ -330,18 +334,18 @@ const [activeCategory, setActiveCategory] = useState("beach");
   return (
     <div id="screen-home" className={`screen ${active ? "active" : ""}`}>
       <div className="main-layout">
-        <Sidebar activeItem="home" userName={displayName} userRole="Trip planner for Sri Lanka" onNavigate={showScreen} />
+        <Sidebar activeItem="home" userName={displayName} userRole={t("appRoleTripPlanner")} onNavigate={showScreen} />
         <div className="main-content">
           <div className="topbar">
             <div>
-              <h1>Plan your Sri Lanka trip</h1>
-              <div className="subtitle">Good morning, {displayName}.</div>
+              <h1>{t("homeTitle")}</h1>
+              <div className="subtitle">{t("homeMorning")}, {displayName}.</div>
             </div>
           </div>
 
           {token && <AiRecommendationsSection token={token} showScreen={setSelectedHomePlace} />}
 
-          <div className="section-header" style={{ marginTop: "40px" }}><h3>Trip style</h3></div>
+          <div className="section-header" style={{ marginTop: "40px" }}><h3>{t("homeTripStyle")}</h3></div>
           <div className="categories">
             {[
               { id: "beach", label: "Beach and Relax" },
@@ -378,7 +382,7 @@ const [activeCategory, setActiveCategory] = useState("beach");
           </div>
 
           <div className="cards-grid" style={{ marginTop: "40px" }}>
-            <h3>Popular itineraries in Sri Lanka</h3>
+            <h3>{t("homePopularItineraries")}</h3>
           </div>
           <div className="cards-grid">
             {popular.map((card) => (
@@ -400,7 +404,7 @@ const [activeCategory, setActiveCategory] = useState("beach");
           </div>
 
           <div className="section-header" style={{ marginTop: "40px" }}>
-            <h3>Hidden Gems & Off the Beaten Path</h3>
+            <h3>{t("homeHiddenGems")}</h3>
           </div>
           <div className="cards-grid">
             {hiddenGems.map((card) => (
@@ -422,7 +426,7 @@ const [activeCategory, setActiveCategory] = useState("beach");
           </div>
 
           <div className="section-header" style={{ marginTop: "40px" }}>
-            <h3>Thrilling Adventures</h3>
+            <h3>{t("homeThrillingAdventures")}</h3>
           </div>
           <div className="cards-grid" style={{ marginBottom: "60px" }}>
             {adventures.map((card) => (
