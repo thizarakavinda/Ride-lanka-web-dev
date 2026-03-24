@@ -1,5 +1,6 @@
 import "./globals.css";
 import { AuthProvider } from "@/context/AuthContext";
+import { GuideAuthProvider } from "@/context/GuideAuthContext";
 import { WishlistProvider } from "@/context/WishlistContext";
 
 export const metadata = {
@@ -19,8 +20,13 @@ export default function RootLayout({ children }) {
         />
       </head>
       <body className="antialiased">
-        <AuthProvider><WishlistProvider>{children}</WishlistProvider></AuthProvider>
+        <AuthProvider>
+          <GuideAuthProvider>
+            <WishlistProvider>{children}</WishlistProvider>
+          </GuideAuthProvider>
+        </AuthProvider>
       </body>
     </html>
   );
 }
+
