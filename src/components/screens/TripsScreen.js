@@ -3,6 +3,7 @@
 import { useMemo, useState, useEffect } from "react";
 import Sidebar from "../Sidebar";
 import { useAuth } from "@/context/AuthContext";
+import { useSettings } from "@/context/SettingsContext";
 import { generateTripPlan, fetchPlaceCulture, getUserTrips, saveUserTrip, searchAndAddPlace, reorderRouteList, updateUserTrip } from "@/lib/api";
 
 const FAVORITE_CATEGORIES = [
@@ -107,15 +108,15 @@ function formatTripDateForDisplay(value) {
   return date.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
 }
 
-const TRIP_FILTER_TABS = [
-  { id: "all", label: "All Trips" },
-  { id: "Upcoming", label: "Upcoming" },
-  { id: "Active", label: "Active" },
-  { id: "Completed", label: "Completed" },
-];
-
 export default function TripsScreen({ active, showScreen }) {
   const { token } = useAuth();
+  const { t } = useSettings();
+  const TRIP_FILTER_TABS = [
+    { id: "all", label: t("tripsFilterAll") },
+    { id: "Upcoming", label: t("tripsFilterUpcoming") },
+    { id: "Active", label: t("tripsFilterActive") },
+    { id: "Completed", label: t("tripsFilterCompleted") },
+  ];
 
   const [userTrips, setUserTrips] = useState([]);
   const [loadingTrips, setLoadingTrips] = useState(true);
@@ -360,10 +361,10 @@ export default function TripsScreen({ active, showScreen }) {
   return (
     <div id="screen-trips" className={`screen ${active ? "active" : ""}`}>
       <div className="main-layout">
-        <Sidebar activeItem="trips" logoIcon="🌍" logoText="Dream" logoEm="Trip" userName="Sithil Semitha" userRole="Explorer · Pro" onNavigate={showScreen} />
+        <Sidebar activeItem="trips" logoIcon="🌍" logoText="Dream" logoEm="Trip" userName="Sithil Semitha" userRole={t("appRoleExplorerPro")} onNavigate={showScreen} />
         <div className="main-content">
           <div className="topbar">
-            <div><h1>My Trips ✈️</h1><div className="subtitle">Track and plan all your adventures</div></div>
+            <div><h1>{t("tripsTitle")}</h1><div className="subtitle">{t("tripsSubtitle")}</div></div>
             <div className="topbar-actions">
               {mode === "list" ? (
                 <button
@@ -372,7 +373,7 @@ export default function TripsScreen({ active, showScreen }) {
                   style={{ width: "auto", padding: "12px 24px" }}
                   onClick={() => setMode("new")}
                 >
-                  + New Trip
+                  {t("tripsNewTrip")}
                 </button>
               ) : (
                 <button
@@ -381,7 +382,7 @@ export default function TripsScreen({ active, showScreen }) {
                   style={{ width: "auto", padding: "12px 24px", background: "var(--gray-100)", color: "var(--gray-600)" }}
                   onClick={() => { setMode("list"); setActiveTrip(null); }}
                 >
-                  ← Back to trips
+                  {t("tripsBackToTrips")}
                 </button>
               )}
             </div>
@@ -408,18 +409,18 @@ export default function TripsScreen({ active, showScreen }) {
                   ))}
                 </div>
                 {loadingTrips ? (
-                  <div style={{ padding: 20, textAlign: "center", color: "var(--gray-500)" }}>Loading your trips...</div>
+                  <div style={{ padding: 20, textAlign: "center", color: "var(--gray-500)" }}>{t("tripsLoading")}</div>
                 ) : userTrips.length === 0 ? (
-                  <div style={{ padding: 40, textAlign: "center", color: "var(--gray-500)", background: "white", borderRadius: 16, marginTop: 20 }}>
+                  <div style={{ padding: 40, textAlign: "center", color: "var(--gray-500)", background: "var(--white)", border: "1px solid var(--gray-100)", borderRadius: 16, marginTop: 20 }}>
                     <div style={{ fontSize: 40, marginBottom: 12 }}>🗺️</div>
-                    <h3 style={{ color: "var(--gray-800)", marginBottom: 8 }}>No trips saved yet</h3>
-                    <p>Click "New Trip" to start planning your adventure!</p>
+                    <h3 style={{ color: "var(--gray-800)", marginBottom: 8 }}>{t("tripsNoSaved")}</h3>
+                    <p>{t("tripsNoSavedDesc")}</p>
                   </div>
                 ) : displayedTrips.length === 0 ? (
-                  <div style={{ padding: 32, textAlign: "center", color: "var(--gray-500)", background: "white", borderRadius: 16, marginTop: 20 }}>
-                    <p>No trips in this category.</p>
+                  <div style={{ padding: 32, textAlign: "center", color: "var(--gray-500)", background: "var(--white)", border: "1px solid var(--gray-100)", borderRadius: 16, marginTop: 20 }}>
+                    <p>{t("tripsNoCategory")}</p>
                     <button type="button" className="btn-teal" style={{ marginTop: 12, width: "auto", padding: "10px 20px" }} onClick={() => setTripFilter("all")}>
-                      Show all trips
+                      {t("tripsShowAll")}
                     </button>
                   </div>
                 ) : (
@@ -458,7 +459,7 @@ export default function TripsScreen({ active, showScreen }) {
                         borderRadius: 18,
                         overflow: "hidden",
                         boxShadow: "0 10px 25px rgba(0,0,0,0.12)",
-                        background: "#e5f7fb",
+                        background: "var(--gray-50)",
                       }}
                     >
                       <iframe
@@ -481,7 +482,7 @@ export default function TripsScreen({ active, showScreen }) {
                 <div className="map-panel" style={{ position: "relative", top: 0, height: "100%", minHeight: 580 }}>
                   <div className="map-placeholder" style={{ padding: 0, alignItems: "stretch", justifyContent: "center", display: "flex" }}>
                     {activeTripMapUrl && (
-                      <div style={{ width: "94%", height: "92%", margin: "3%", borderRadius: 18, overflow: "hidden", boxShadow: "0 10px 25px rgba(0,0,0,0.12)", background: "#e5f7fb" }}>
+                      <div style={{ width: "94%", height: "92%", margin: "3%", borderRadius: 18, overflow: "hidden", boxShadow: "0 10px 25px rgba(0,0,0,0.12)", background: "var(--gray-50)" }}>
                         <iframe title="Active trip route" src={activeTripMapUrl} width="100%" height="100%" style={{ border: 0 }} loading="lazy" referrerPolicy="no-referrer-when-downgrade" />
                       </div>
                     )}
@@ -490,7 +491,7 @@ export default function TripsScreen({ active, showScreen }) {
               </div>
 
               <div className="new-trip-details" style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-                <div className="new-trip-card" style={{ background: "white", borderRadius: 16, boxShadow: "var(--shadow-sm)", padding: 20 }}>
+                <div className="new-trip-card" style={{ background: "var(--white)", borderRadius: 16, boxShadow: "var(--shadow-sm)", padding: 20, border: "1px solid var(--gray-100)" }}>
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 8 }}>
                     <div>
                       <h3 style={{ fontSize: 20, fontWeight: 800 }}>{activeTrip.trip_name}</h3>
@@ -535,7 +536,7 @@ export default function TripsScreen({ active, showScreen }) {
                           </div>
                           {stop.stop_note && <div style={{ fontSize: 12, color: "var(--teal)", marginTop: 8, fontWeight: 600 }}>💡 {stop.stop_note}</div>}
 
-                          <div style={{ marginTop: 14, background: "white", padding: 12, borderRadius: 10, border: "1px solid var(--gray-200)" }}>
+                          <div style={{ marginTop: 14, background: "var(--white)", padding: 12, borderRadius: 10, border: "1px solid var(--gray-200)" }}>
                             <div style={{ fontSize: 12, fontWeight: 700, color: "var(--gray-700)", marginBottom: 8 }}>📝 Your Memory Journal</div>
                             
                             {tripMemories[stop.stop_order]?.img && (
@@ -547,13 +548,13 @@ export default function TripsScreen({ active, showScreen }) {
                               placeholder="Add a photo URL here (optional)..."
                               value={tripMemories[stop.stop_order]?.img || ""}
                               onChange={e => setTripMemories(prev => ({...prev, [stop.stop_order]: { ...prev[stop.stop_order], img: e.target.value }}))}
-                              style={{ width: "100%", padding: "8px 10px", borderRadius: 6, border: "1px solid var(--gray-200)", fontSize: 12, marginBottom: 8, outline: "none" }}
+                              style={{ width: "100%", padding: "8px 10px", borderRadius: 6, border: "1px solid var(--gray-200)", fontSize: 12, marginBottom: 8, outline: "none", background: "var(--white)", color: "var(--text)" }}
                             />
                             <textarea
                               placeholder="What did you experience here? Write your thoughts..."
                               value={tripMemories[stop.stop_order]?.note || ""}
                               onChange={e => setTripMemories(prev => ({...prev, [stop.stop_order]: { ...prev[stop.stop_order], note: e.target.value }}))}
-                              style={{ width: "100%", padding: "8px 10px", borderRadius: 6, border: "1px solid var(--gray-200)", fontSize: 12, minHeight: 60, resize: "vertical", outline: "none" }}
+                              style={{ width: "100%", padding: "8px 10px", borderRadius: 6, border: "1px solid var(--gray-200)", fontSize: 12, minHeight: 60, resize: "vertical", outline: "none", background: "var(--white)", color: "var(--text)" }}
                             />
                             <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 8 }}>
                               <button 
@@ -605,7 +606,7 @@ export default function TripsScreen({ active, showScreen }) {
                           borderRadius: 18,
                           overflow: "hidden",
                           boxShadow: "0 10px 25px rgba(0,0,0,0.12)",
-                          background: "#e5f7fb",
+                          background: "var(--gray-50)",
                         }}
                       >
                         <iframe
@@ -624,7 +625,7 @@ export default function TripsScreen({ active, showScreen }) {
               </div>
 
               <div className="new-trip-details">
-                <div className="new-trip-card" style={{ background: "white", borderRadius: 16, boxShadow: "var(--shadow-sm)", padding: 20 }}>
+                <div className="new-trip-card" style={{ background: "var(--white)", borderRadius: 16, boxShadow: "var(--shadow-sm)", padding: 20, border: "1px solid var(--gray-100)" }}>
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 18 }}>
                     <div>
                       <h3 style={{ fontSize: 18, fontWeight: 800 }}>Add New Trip</h3>
@@ -655,7 +656,8 @@ export default function TripsScreen({ active, showScreen }) {
                           borderRadius: 12,
                           padding: "12px 14px",
                           fontSize: 14,
-                          background: "white",
+                          background: "var(--white)",
+                          color: "var(--text)",
                           outline: "none",
                         }}
                       >
@@ -686,7 +688,7 @@ export default function TripsScreen({ active, showScreen }) {
                                     border: activeFavorite ? "1.5px solid var(--teal)" : "1.5px solid var(--gray-200)",
                                     borderRadius: 10,
                                     padding: "9px 8px",
-                                    background: activeFavorite ? "var(--teal-light)" : "white",
+                                    background: activeFavorite ? "var(--teal-light)" : "var(--white)",
                                     color: activeFavorite ? "var(--teal-dark)" : "var(--gray-600)",
                                     fontSize: 12,
                                     fontWeight: 700,
@@ -729,7 +731,7 @@ export default function TripsScreen({ active, showScreen }) {
                       <button
                         type="button"
                         className="btn-teal"
-                        style={{ width: "auto", padding: "14px 18px", background: "white", color: "var(--teal)", border: "1.5px solid var(--gray-200)" }}
+                        style={{ width: "auto", padding: "14px 18px", background: "var(--white)", color: "var(--teal)", border: "1.5px solid var(--gray-200)" }}
                         onClick={() => setMode("list")}
                         disabled={loadingPlan}
                       >
@@ -778,7 +780,7 @@ export default function TripsScreen({ active, showScreen }) {
                             onChange={e => setSearchQuery(e.target.value)}
                             placeholder="Add a custom place... (e.g. Kandy Lake)"
                             disabled={isSearching}
-                            style={{ flex: 1, padding: "10px 14px", borderRadius: 8, border: "1px solid var(--gray-200)", fontSize: 13, outline: "none" }}
+                            style={{ flex: 1, padding: "10px 14px", borderRadius: 8, border: "1px solid var(--gray-200)", fontSize: 13, outline: "none", background: "var(--white)", color: "var(--text)" }}
                           />
                           <button
                             type="submit"
