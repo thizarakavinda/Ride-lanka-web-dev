@@ -6,6 +6,34 @@ import { useAuth } from "@/context/AuthContext";
 import { isAdminEmail } from "@/lib/adminAuth";
 import { useSettings } from "@/context/SettingsContext";
 
+function IconMail() {
+  return (
+    <svg className="auth-input-icon-svg" width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path
+        d="M4 6h16v12H4V6zm0 0 8 6 8-6"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function IconLock() {
+  return (
+    <svg className="auth-input-icon-svg" width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <rect x="5" y="10" width="14" height="10" rx="2" stroke="currentColor" strokeWidth="1.75" />
+      <path
+        d="M8 10V7a4 4 0 118 0v3"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
 export default function LoginForm({ onSignIn }) {
   const router = useRouter();
   const { signIn } = useAuth();
@@ -37,30 +65,55 @@ export default function LoginForm({ onSignIn }) {
   }
 
   return (
-    <div id="tab-login" className="auth-form">
-      <h3>{t("loginWelcomeBack")}</h3>
-      <p className="subtitle">{t("loginSubtitle")}</p>
-      <div className="form-group">
-        <label>{t("loginEmailLabel")}</label>
-        <input
-          type="email"
-          placeholder="you@example.com"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
+    <div id="tab-login" className="auth-form" role="tabpanel" aria-labelledby="auth-tab-login">
+      <div className="auth-form-head">
+        <h3>{t("loginWelcomeBack")}</h3>
+        <p className="subtitle">{t("loginSubtitle")}</p>
       </div>
-      <div className="form-group">
-        <label>{t("loginPasswordLabel")}</label>
-        <input
-          type="password"
-          placeholder="Enter password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
+      {error ? (
+        <div className="auth-alert" role="alert">
+          <span className="auth-alert-dot" aria-hidden />
+          <span>{error}</span>
+        </div>
+      ) : null}
+      <div className="form-group auth-field">
+        <label htmlFor="login-email">{t("loginEmailLabel")}</label>
+        <div className="auth-input-shell">
+          <span className="auth-input-icon">
+            <IconMail />
+          </span>
+          <input
+            id="login-email"
+            type="email"
+            autoComplete="email"
+            placeholder="you@example.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+        </div>
       </div>
-      <div className="forgot-link">{t("loginForgotPassword")}</div>
-      {error && <p style={{ color: "red", marginBottom: 8, fontSize: 13 }}>{error}</p>}
-      <button className="btn-teal" onClick={handleSignIn} disabled={loading}>
+      <div className="form-group auth-field">
+        <label htmlFor="login-password">{t("loginPasswordLabel")}</label>
+        <div className="auth-input-shell">
+          <span className="auth-input-icon">
+            <IconLock />
+          </span>
+          <input
+            id="login-password"
+            type="password"
+            autoComplete="current-password"
+            placeholder="Enter password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+        </div>
+      </div>
+      <div className="forgot-link-wrap">
+        <button type="button" className="forgot-link">
+          {t("loginForgotPassword")}
+        </button>
+      </div>
+      <button className="btn-teal btn-teal-glow" onClick={handleSignIn} disabled={loading}>
         {loading ? t("loginSigningIn") : t("loginSignIn")}
       </button>
     </div>
