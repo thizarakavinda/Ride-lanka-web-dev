@@ -22,6 +22,221 @@
     --sidebar: 260px;
 }
 
+html.dark {
+    --white: #12181c;
+    --off-white: #0c1215;
+    --gray-50: #141d22;
+    --gray-100: #1f2a30;
+    --gray-200: #2a3840;
+    --gray-400: #9ab0b7;
+    --gray-600: #c3d4d9;
+    --gray-800: #eaf2f4;
+    --text: #eef5f7;
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.35);
+    --shadow: 0 4px 20px rgba(0, 0, 0, 0.45);
+    --shadow-lg: 0 12px 40px rgba(0, 0, 0, 0.55);
+}
+
+html.dark body {
+    background: var(--off-white);
+    color: var(--text);
+}
+
+html.dark .hero-field input::placeholder {
+    color: rgba(255, 255, 255, 0.65);
+}
+
+/* Shared dark surfaces for consistent card/sidebar polish */
+html.dark .sidebar,
+html.dark .auth-right,
+html.dark .search-bar,
+html.dark .notif-btn,
+html.dark .dest-card,
+html.dark .trip-card,
+html.dark .booking-card,
+html.dark .profile-card,
+html.dark .info-card,
+html.dark .notif-item,
+html.dark .settings-card,
+html.dark .settings-nav,
+html.dark .settings-section,
+html.dark .follow-card,
+html.dark .feed-post,
+html.dark .modal-content,
+html.dark .profile-edit-card {
+    background: var(--white);
+    border-color: var(--gray-100);
+}
+
+/* Sidebar */
+html.dark .sidebar {
+    border-right: 1px solid var(--gray-100);
+}
+
+html.dark .sidebar-logo,
+html.dark .sidebar-bottom {
+    border-color: var(--gray-100);
+}
+
+html.dark .sidebar-logo span,
+html.dark .user-info .name {
+    color: var(--text);
+}
+
+html.dark .nav-item {
+    color: var(--gray-400);
+}
+
+html.dark .nav-item:hover,
+html.dark .nav-item.active {
+    background: #173138;
+    color: #6be5cf;
+}
+
+html.dark .sidebar-user:hover {
+    background: #172126;
+}
+
+/* Headings / body text */
+html.dark .topbar h1,
+html.dark .section-header h3,
+html.dark .card-body h4,
+html.dark .detail-title,
+html.dark .profile-name,
+html.dark .settings-card .card-header h3,
+html.dark .setting-item .item-title,
+html.dark .notif-body h5,
+html.dark .post-header .name,
+html.dark .booking-total {
+    color: var(--text);
+}
+
+html.dark .topbar .subtitle,
+html.dark .topbar-subtitle,
+html.dark .card-location,
+html.dark .card-price span,
+html.dark .item-desc,
+html.dark .notif-time,
+html.dark .post-text,
+html.dark .settings-card .card-header p,
+html.dark .detail-desc,
+html.dark .review-text,
+html.dark .user-info .role {
+    color: var(--gray-400);
+}
+
+/* Inputs and selects */
+html.dark .form-group input,
+html.dark .booking-form input,
+html.dark .booking-form select,
+html.dark .input-field,
+html.dark .search-bar input {
+    background: #11181c;
+    border-color: var(--gray-200);
+    color: var(--text);
+}
+
+html.dark .search-bar .icon {
+    color: var(--gray-400);
+}
+
+html.dark .input-field:focus,
+html.dark .form-group input:focus,
+html.dark .booking-form input:focus,
+html.dark .booking-form select:focus {
+    border-color: var(--teal-mid);
+    box-shadow: 0 0 0 3px rgba(61, 191, 173, 0.15);
+}
+
+/* Cards / list rows / dividers */
+html.dark .setting-item,
+html.dark .settings-row,
+html.dark .activity-item,
+html.dark .booking-summary,
+html.dark .profile-stats {
+    border-color: var(--gray-100);
+}
+
+html.dark .theme-selector {
+    background: #11181d;
+}
+
+html.dark .theme-btn {
+    color: var(--gray-400);
+}
+
+html.dark .theme-btn.active {
+    background: #1d2a30;
+    color: #6be5cf;
+}
+
+html.dark .slider {
+    background-color: #33444d;
+}
+
+html.dark input:checked + .slider {
+    background-color: var(--teal-mid);
+}
+
+/* Chip/tag/pill styling for dark */
+html.dark .tag,
+html.dark .pill-teal {
+    background: #173138;
+    color: #8ff1e0;
+}
+
+/* Category chips in dark mode (Trip style row) */
+html.dark .cat-chip {
+    background: #162126;
+    border-color: #24343c;
+    color: #c9d8dd;
+}
+
+html.dark .cat-chip:hover {
+    background: #1c2d34;
+    border-color: #2f4650;
+    color: #e7f2f5;
+}
+
+html.dark .cat-chip.active {
+    background: linear-gradient(135deg, #0ba891 0%, #08897a 100%);
+    border-color: #0ba891;
+    color: #ffffff;
+    box-shadow: 0 6px 18px rgba(11, 168, 145, 0.35);
+}
+
+/* Trips filter tabs in dark mode */
+html.dark .trip-steps {
+    background: #162126;
+    box-shadow: inset 0 0 0 1px #24343c, var(--shadow-sm);
+}
+
+html.dark .step-btn {
+    color: #a9bec5;
+}
+
+html.dark .step-btn:hover {
+    color: #e6f1f4;
+}
+
+html.dark .step-btn.active {
+    background: linear-gradient(135deg, #0ba891 0%, #08897a 100%);
+    color: #ffffff;
+}
+
+/* Notification and social cards hover feedback */
+html.dark .notif-item:hover,
+html.dark .trip-card:hover,
+html.dark .dest-card:hover,
+html.dark .feed-post:hover {
+    box-shadow: var(--shadow);
+}
+
+/* Keep bright sections readable while still matching dark mode */
+html.dark .hero-banner {
+    box-shadow: var(--shadow);
+}
+
 * {
     margin: 0;
     padding: 0;
@@ -2181,6 +2396,14 @@ body {
     text-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
 }
 
+.explore-main-title {
+    color: var(--teal-dark);
+}
+
+.explore-main-subtitle {
+    color: var(--gray-500);
+}
+
 .explore-map-container {
     width: 100%;
     height: 400px;
@@ -2191,6 +2414,39 @@ body {
     border: 1px solid rgba(255,255,255,0.1);
     position: relative;
     background: #111;
+}
+
+html.dark .explore-main-title {
+    color: #9ff5e7;
+    text-shadow: 0 0 14px rgba(111, 239, 214, 0.35);
+}
+
+html.dark .explore-main-subtitle {
+    color: #a9bec5;
+}
+
+/* Explore bento cards: darker surface and cleaner contrast */
+html.dark .explore-bento .bento-card {
+    border: 1px solid #263740;
+    background: #101920;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+}
+
+html.dark .explore-bento .bento-overlay {
+    background: linear-gradient(to top, rgba(3, 8, 12, 0.95) 0%, rgba(5, 15, 22, 0.55) 45%, rgba(0, 0, 0, 0.12) 100%);
+}
+
+html.dark .explore-bento .bento-card h3 {
+    color: #ecf6f8;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.65);
+}
+
+html.dark .explore-bento .bento-card p {
+    color: rgba(235, 246, 249, 0.9);
+}
+
+html.dark .explore-bento .read-more {
+    color: #77efd8;
 }
 
 .map-overlay-info {
@@ -2222,6 +2478,26 @@ body {
     z-index: 2;
     padding: 40px !important;
     box-shadow: 0 -20px 40px rgba(0,0,0,0.1);
+}
+
+html.dark .article-content-glass {
+    background: rgba(14, 22, 28, 0.92);
+    border: 1px solid #273843;
+    box-shadow: 0 -20px 40px rgba(0, 0, 0, 0.45);
+}
+
+html.dark .article-content-glass .article-lead {
+    color: #7cf0d9 !important;
+    border-left-color: #1cc9ad !important;
+}
+
+html.dark .article-content-glass .article-body p {
+    color: #d7e5ea;
+}
+
+html.dark .article-content-glass .text-glow {
+    color: #9ff5e7 !important;
+    text-shadow: 0 0 10px rgba(124, 240, 217, 0.35);
 }
 
 .article-title-futuristic {
@@ -2306,7 +2582,10 @@ body {
 /* Ensure grids are responsive within the new layout */
 /* Restore the larger grid item width for a formal look (4 per row on desktop) */
 /* Unified grid item width to 320px (Trip style size) for all home screen sections */
-.persistent-content .cards-grid,
+.persistent-content .cards-grid {
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)) !important;
+}
+
 /* ===== PROFILE EDIT CARD ===== */
 .profile-edit-card {
     background: white;
