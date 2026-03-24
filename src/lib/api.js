@@ -229,3 +229,36 @@ export async function deleteExplorePlace(token, placeId) {
     if (!res.ok) throw new Error(await res.text());
     return res.json();
 }
+
+export async function updateExplorePlace(token, placeId, { title, snippet, content, image }) {
+    const url = `${BACKEND}/api/explore/${placeId}`;
+    const res = await safeFetch(url, {
+        method: "PUT",
+        headers: await authHeaders(token),
+        body: JSON.stringify({ title, snippet, content, image }),
+    });
+    if (!res.ok) throw new Error(await res.text());
+    return res.json();
+}
+
+// ─── System Settings ───────────────────────────────────────────────────────
+
+export async function getSystemSettings(token) {
+    const url = `${BACKEND}/api/settings`;
+    const res = await safeFetch(url, {
+        headers: await authHeaders(token),
+    });
+    if (!res.ok) throw new Error(await res.text());
+    return res.json();
+}
+
+export async function updateSystemSettings(token, settings) {
+    const url = `${BACKEND}/api/settings`;
+    const res = await safeFetch(url, {
+        method: "PUT",
+        headers: await authHeaders(token),
+        body: JSON.stringify(settings),
+    });
+    if (!res.ok) throw new Error(await res.text());
+    return res.json();
+}
