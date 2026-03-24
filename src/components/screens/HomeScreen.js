@@ -5,6 +5,7 @@ import Sidebar from "../Sidebar";
 import { useAuth } from "@/context/AuthContext";
 import { useWishlist } from "@/context/WishlistContext";
 import { useSettings } from "@/context/SettingsContext";
+import { useGlobalSettings } from "@/context/GlobalSettingsContext";
 import { getRecommendations, refreshRecommendations, trackEvent, fetchPlaceCulture } from "@/lib/api";
 
 import highlandtain from "../assets/Highland Train Journey.jpg";
@@ -253,6 +254,7 @@ const [activeCategory, setActiveCategory] = useState("beach");
   const { t } = useSettings();
   const [selectedHomePlace, setSelectedHomePlace] = useState(null);
   const { token, user } = useAuth();
+  const { flags } = useGlobalSettings();
   const displayName = useMemo(() => user?.displayName || user?.email?.split("@")[0] || "traveler", [user]);
 
   const popular = [
@@ -343,7 +345,15 @@ const [activeCategory, setActiveCategory] = useState("beach");
             </div>
           </div>
 
-          {token && <AiRecommendationsSection token={token} showScreen={setSelectedHomePlace} />}
+          {token && flags.aiPlannerV2 ? (
+            <AiRecommendationsSection token={token} showScreen={setSelectedHomePlace} />
+          ) : token && (
+            <div className="section-header" style={{ marginTop: "12px", background: "rgba(94, 234, 212, 0.05)", padding: "12px 20px", borderRadius: "12px", border: "1px dashed rgba(94, 234, 212, 0.2)" }}>
+              <p style={{ color: "var(--teal-dark)", fontSize: "0.9rem", margin: 0, display: "flex", alignItems: "center", gap: "8px" }}>
+                <span>✨</span> AI-Powered recommendations are currently paused for system optimization. 
+              </p>
+            </div>
+          )}
 
           <div className="section-header" style={{ marginTop: "40px" }}><h3>{t("homeTripStyle")}</h3></div>
           <div className="categories">

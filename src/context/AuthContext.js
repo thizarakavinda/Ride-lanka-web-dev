@@ -9,7 +9,8 @@ import {
   updateEmail,
   updatePassword
 } from "firebase/auth";
-import { auth } from "@/lib/firebase";
+import { doc, getDoc } from "firebase/firestore";
+import { auth, db } from "@/lib/firebase";
 import { saveUserProfile, refreshRecommendations } from "@/lib/api";
 import {
   ADMIN_EMAIL,
@@ -55,6 +56,22 @@ function toFriendlyAuthError(error, mode) {
   return new Error(error?.message || "Authentication failed. Please try again.");
 }
 
+async function getUserAccountStatus(uid) {
+  try {
+    const snap = await getDoc(doc(db, "users", uid));
+    if (!snap.exists()) return "active";
+    const data = snap.data() || {};
+    const raw = data.status || data.accountStatus || "active";
+    const status = String(raw).trim().toLowerCase();
+    if (status === "blocked") return "blocked";
+    if (status === "suspended") return "suspended";
+    return "active";
+  } catch (e) {
+    console.warn("Could not read user status from Firestore:", e);
+    return "active";
+  }
+}
+
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(null);
@@ -71,6 +88,14 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
+        const accountStatus = await getUserAccountStatus(firebaseUser.uid);
+        if (accountStatus === "suspended" || accountStatus === "blocked") {
+          await signOut(auth);
+          setUser(null);
+          setToken(null);
+          setLoading(false);
+          return;
+        }
         clearDevAdminSession();
         const idToken = await firebaseUser.getIdToken();
         setUser(firebaseUser);
@@ -115,6 +140,15 @@ export function AuthProvider({ children }) {
 
     try {
       const cred = await signInWithEmailAndPassword(auth, email, password);
+      const accountStatus = await getUserAccountStatus(cred.user.uid);
+      if (accountStatus === "suspended" || accountStatus === "blocked") {
+        await signOut(auth);
+        throw new Error(
+          accountStatus === "blocked"
+            ? "This account is blocked. Please contact support."
+            : "This account is suspended. Please contact support."
+        );
+      }
       clearDevAdminSession();
       const idToken = await cred.user.getIdToken();
       setUser(cred.user);

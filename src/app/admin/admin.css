@@ -282,6 +282,11 @@
   color: #475569;
 }
 
+.admin-badge-danger {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
 .admin-loading-screen {
   min-height: 100vh;
   display: flex;
@@ -309,6 +314,156 @@
 
 .admin-link-home:hover {
   text-decoration: underline;
+}
+
+/* ---- Users admin ---- */
+.admin-user-status-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.admin-user-status-card {
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 12px;
+  background: #f8fafc;
+}
+
+.admin-user-status-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  color: #334155;
+  font-size: 0.85rem;
+}
+
+.admin-user-status-head strong {
+  color: #0f172a;
+  font-size: 1rem;
+}
+
+.admin-user-status-bar {
+  width: 100%;
+  height: 8px;
+  background: #e2e8f0;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.admin-user-status-fill {
+  height: 100%;
+  border-radius: 999px;
+}
+
+.admin-user-status-fill.active {
+  background: #10b981;
+}
+
+.admin-user-status-fill.suspended {
+  background: #f59e0b;
+}
+
+.admin-user-status-fill.blocked {
+  background: #ef4444;
+}
+
+.admin-user-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.admin-btn-warn {
+  border-color: #f59e0b;
+  color: #b45309;
+}
+
+.admin-btn-danger {
+  border-color: #ef4444;
+  color: #b91c1c;
+}
+
+/* ---- Trips admin ---- */
+.admin-trips-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.admin-trips-toolbar {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+/* ---- Dashboard charts ---- */
+.admin-chart-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.admin-chart-card {
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: #f8fafc;
+  padding: 14px;
+  min-height: 300px;
+}
+
+.admin-chart-card h3 {
+  margin: 0 0 10px 0;
+  font-size: 0.95rem;
+  color: #0f172a;
+  font-weight: 700;
+}
+
+.admin-chart-canvas {
+  position: relative;
+  height: 240px;
+  width: 100%;
+}
+
+.admin-chart-card canvas {
+  height: 240px !important;
+}
+
+/* ---- Explore CMS form ---- */
+.admin-cms-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 32px;
+  background: #f8fafc;
+  padding: 20px;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+}
+
+.admin-input-cms {
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 0.9rem;
+  background: #ffffff;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.admin-input-cms:focus {
+  border-color: #4f46e5;
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+}
+
+.admin-textarea-cms {
+  min-height: 110px;
+  resize: vertical;
+  line-height: 1.5;
 }
 
 /* ---- Quests admin ---- */
@@ -439,6 +594,122 @@
   color: #dc2626;
 }
 
-.admin-btn-text-danger:hover {
-  background: #fef2f2;
+/* ---- System Monitoring Dashboard ---- */
+.admin-settings-container {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  animation: fadeIn 0.4s ease-out;
+}
+
+.admin-monitor-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.admin-monitor-card {
+  background: white;
+  padding: 24px;
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  transition: transform 0.2s;
+}
+
+.admin-monitor-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.monitor-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.monitor-icon {
+  font-size: 24px;
+}
+
+.admin-monitor-card h3 {
+  margin: 0 !important;
+  font-size: 1.1rem;
+  color: #1e293b;
+}
+
+.monitor-status {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.monitor-status strong {
+  font-size: 1.25rem;
+  color: #0f172a;
+}
+
+.monitor-meta {
+  font-size: 0.85rem;
+  color: #64748b;
+}
+
+/* Performance Metrics Grid */
+.admin-monitor-metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+}
+
+.metric-tile {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+}
+
+.metric-tile label {
+  display: block;
+  font-size: 0.8rem;
+  color: #64748b;
+  margin-bottom: 8px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.metric-value {
+  font-size: 1.85rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 4px;
+}
+
+.metric-value span {
+  font-size: 0.85rem;
+  color: #94a3b8;
+  margin-left: 2px;
+}
+
+.metric-trend {
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.trend-up { color: #10b981; }
+.trend-down { color: #f43f5e; }
+.trend-neutral { color: #64748b; }
+.trend-warn { color: #f59e0b; }
+
+/* Chart Section */
+.admin-monitor-chart-section {
+  padding: 24px !important;
+}
+
+@media (max-width: 768px) {
+  .admin-monitor-row {
+    grid-template-columns: 1fr;
+  }
 }

@@ -5,7 +5,33 @@ import Sidebar from "../Sidebar";
 import { useAuth } from "@/context/AuthContext";
 import { useWishlist } from "@/context/WishlistContext";
 import { useSettings } from "@/context/SettingsContext";
-import { getExplorePlaces } from "@/lib/api";
+import { collection, getDocs } from "firebase/firestore";
+import { db } from "@/lib/firebase";
+
+function normalizePlaceRecord(raw, id) {
+  const title = String(raw?.title || "Untitled destination").trim();
+  const snippet = String(raw?.snippet || "").trim();
+  const content = String(raw?.content || "").trim();
+  const imageRaw = String(raw?.image || "").trim();
+  // Data URIs copied through forms can contain spaces/newlines; strip them.
+  const image = imageRaw.startsWith("data:image/")
+    ? imageRaw.replace(/\s+/g, "")
+    : imageRaw;
+
+  return {
+    id,
+    ...raw,
+    title,
+    snippet,
+    content,
+    image,
+  };
+}
+
+function getSafeImage(place) {
+  if (typeof place?.image === "string" && place.image.length > 32) return place.image;
+  return `https://source.unsplash.com/1200x800/?${encodeURIComponent((place?.title || "Sri Lanka") + " Sri Lanka")}`;
+}
 
 export default function ExploreScreen({ active, showScreen }) {
   const { user, token } = useAuth();
@@ -18,8 +44,11 @@ export default function ExploreScreen({ active, showScreen }) {
   useEffect(() => {
     if (active && token) {
       setLoading(true);
-      getExplorePlaces(token)
-        .then((data) => setExplorePlaces(data.places || []))
+      getDocs(collection(db, "explore_places"))
+        .then((snap) => {
+          const places = snap.docs.map((d) => normalizePlaceRecord(d.data(), d.id));
+          setExplorePlaces(places);
+        })
         .catch((err) => console.error("Failed to load explore places", err))
         .finally(() => setLoading(false));
     }
@@ -48,7 +77,7 @@ export default function ExploreScreen({ active, showScreen }) {
           
           {selectedPlace ? (
             <div className="explore-article-view">
-              <div className="explore-article-hero article-futuristic-header" style={{ backgroundImage: `url(${selectedPlace.image})` }}>
+              <div className="explore-article-hero article-futuristic-header" style={{ backgroundImage: `url(${getSafeImage(selectedPlace)})` }}>
                 <div className="hero-overlay" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.9) 0%, transparent 100%)' }}>
                   <div className="hero-topbar">
                     <button 
@@ -84,7 +113,7 @@ export default function ExploreScreen({ active, showScreen }) {
                 <div className="article-collage-sidebar">
                   <h4 className="text-glow" style={{ marginBottom: '20px', color: 'var(--teal-dark)', fontSize: '0.8rem', letterSpacing: '2px' }}>VISUAL ARCHIVE</h4>
                   <div className="single-archive-card futuristic-card">
-                    <img src={selectedPlace.image} alt={selectedPlace.title} />
+                    <img src={getSafeImage(selectedPlace)} alt={selectedPlace.title} />
                   </div>
                 </div>
               </div>
@@ -134,7 +163,7 @@ export default function ExploreScreen({ active, showScreen }) {
 
                     return (
                       <div key={place.id} className={`bento-card futuristic-card ${bentoClass}`} onClick={() => handleSelectPlace(place)}>
-                        <div className="bento-bg" style={{ backgroundImage: `url(${place.image})` }} />
+                        <div className="bento-bg" style={{ backgroundImage: `url(${getSafeImage(place)})` }} />
                         <div className="bento-overlay">
                           <h3 className="text-glow">{place.title}</h3>
                           {(bentoClass === "bento-large" || bentoClass === "bento-wide") && (
