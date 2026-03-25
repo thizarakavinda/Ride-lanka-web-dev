@@ -7,21 +7,13 @@ export default function Sidebar({
   logoIcon = "🌊",
   logoText = "Ride",
   logoEm = "Lanka",
-  userName = "Sithil Semitha",
-  userRole = "Trip planner for Sri Lanka",
+  userName = "",
+  userRole = "",
   onNavigate,
 }) {
   const { t } = useSettings();
   const { isGuideMode } = useAppMode();
 
-  const resolvedUserRole =
-    userRole === "Trip planner for Sri Lanka"
-      ? t("appRoleTripPlanner")
-      : userRole === "Explorer · Pro"
-        ? t("appRoleExplorerPro")
-        : userRole === "Tour guide"
-          ? t("appRoleTourGuide")
-          : userRole;
 
   const nav = (screen, params) => (e) => {
     e?.preventDefault?.();
@@ -94,10 +86,8 @@ export default function Sidebar({
         </div>
         <div className="sidebar-bottom">
           <div className="sidebar-user">
-            <div className="avatar">{userName.slice(0, 2).toUpperCase()}</div>
             <div className="user-info">
-              <div className="name">{userName}</div>
-              <div className="role">{resolvedUserRole}</div>
+              <div className="name">{isGuideMode ? t("appRoleTourGuide") : t("appRoleTripPlanner")}</div>
             </div>
           </div>
         </div>
@@ -189,10 +179,8 @@ export default function Sidebar({
       </div>
       <div className="sidebar-bottom">
         <div className="sidebar-user">
-          <div className="avatar">{userName.slice(0, 2).toUpperCase()}</div>
           <div className="user-info">
-            <div className="name">{userName}</div>
-            <div className="role">{resolvedUserRole}</div>
+            <div className="name">{isGuideMode ? t("appRoleTourGuide") : t("appRoleTripPlanner")}</div>
           </div>
         </div>
       </div>

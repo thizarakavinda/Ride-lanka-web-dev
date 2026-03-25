@@ -8,7 +8,7 @@ export default function DetailScreen({ active, showScreen }) {
   return (
     <div id="screen-detail" className={`screen ${active ? "active" : ""}`}>
       <div className="main-layout">
-        <Sidebar activeItem="explore" logoIcon="🌍" logoText="Dream" logoEm="Trip" userName="Sithil Semitha" userRole={t("appRoleExplorerPro")} onNavigate={showScreen} />
+        <Sidebar activeItem="explore" logoIcon="🌍" logoText="Dream" logoEm="Trip" userRole={t("appRoleExplorerPro")} onNavigate={showScreen} />
         <div className="main-content">
           <div className="back-btn" onClick={() => showScreen("screen-home")} role="button" tabIndex={0}>{t("detailBackToExplore")}</div>
           <div className="detail-layout">

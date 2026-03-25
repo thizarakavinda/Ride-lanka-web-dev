@@ -361,7 +361,7 @@ export default function TripsScreen({ active, showScreen }) {
   return (
     <div id="screen-trips" className={`screen ${active ? "active" : ""}`}>
       <div className="main-layout">
-        <Sidebar activeItem="trips" logoIcon="🌍" logoText="Dream" logoEm="Trip" userName="Sithil Semitha" userRole={t("appRoleExplorerPro")} onNavigate={showScreen} />
+        <Sidebar activeItem="trips" logoIcon="🌍" logoText="Dream" logoEm="Trip" userRole={t("appRoleExplorerPro")} onNavigate={showScreen} />
         <div className="main-content">
           <div className="topbar">
             <div><h1>{t("tripsTitle")}</h1><div className="subtitle">{t("tripsSubtitle")}</div></div>

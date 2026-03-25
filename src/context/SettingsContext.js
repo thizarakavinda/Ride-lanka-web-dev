@@ -7,7 +7,7 @@ const SettingsContext = createContext();
 const TRANSLATIONS = {
   en: {
     // App Roles & Branding
-    appRoleTripPlanner: "Travel Planner",
+    appRoleTripPlanner: "Trip Planner",
     appRoleExplorerPro: "Explorer · Pro",
     appRoleTourGuide: "Tour Guide",
     authBrandTagline: "Plan. Explore. Remember.",

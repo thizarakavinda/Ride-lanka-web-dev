@@ -23,7 +23,6 @@ export default function SettingsScreen({ active, showScreen }) {
       <div className="main-layout">
         <Sidebar 
           activeItem="settings" 
-          userName="Sithil Semitha" 
           userRole={t("appRoleTripPlanner")} 
           onNavigate={showScreen} 
         />

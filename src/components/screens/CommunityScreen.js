@@ -26,7 +26,7 @@ export default function CommunityScreen({ active, showScreen }) {
   return (
     <div id="screen-community" className={`screen ${active ? "active" : ""}`}>
       <div className="main-layout">
-        <Sidebar activeItem="community" logoIcon="🌍" logoText="Dream" logoEm="Trip" userName="Sithil Semitha" userRole={t("appRoleExplorerPro")} onNavigate={showScreen} />
+        <Sidebar activeItem="community" logoIcon="🌍" logoText="Dream" logoEm="Trip" userRole={t("appRoleExplorerPro")} onNavigate={showScreen} />
         <div className="main-content">
           <div className="topbar"><div><h1>{t("communityTitle")}</h1><div className="subtitle">{t("communitySubtitle")}</div></div></div>
           <div className="social-layout">
