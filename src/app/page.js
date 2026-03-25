@@ -14,6 +14,7 @@ import {
   SettingsScreen,
   QuestsScreen,
   ExploreScreen,
+  DiscoveryHubScreen,
   TourGuidesScreen,
   GuideDetailScreen,
   GuideHubScreen,
@@ -31,13 +32,14 @@ import MaintenanceGuard from "@/components/MaintenanceGuard";
 const SIDEBAR_SCREENS = [
   "screen-home", "screen-detail", "screen-trips", "screen-wishlist",
   "screen-profile", "screen-community", "screen-notif", "screen-settings",
-  "screen-quests", "screen-explore", "screen-tour-guides", "screen-guide-detail", "screen-guide-hub",
+  "screen-quests", "screen-explore", "screen-discovery-hub", "screen-tour-guides", "screen-guide-detail", "screen-guide-hub",
   "screen-guide-bookings", "screen-guide-stories",
 ];
 
 const SCREEN_TO_ACTIVE_ITEM = {
   "screen-home": "home",
   "screen-explore": "explore",
+  "screen-discovery-hub": "discovery-hub",
   "screen-trips": "trips",
   "screen-wishlist": "wishlist",
   "screen-profile": "profile",
@@ -156,6 +158,7 @@ function HomeInner() {
           <SettingsScreen active={activeScreen === "screen-settings"} showScreen={showScreen} />
           <QuestsScreen active={activeScreen === "screen-quests"} showScreen={showScreen} />
           <ExploreScreen active={activeScreen === "screen-explore"} showScreen={showScreen} />
+          <DiscoveryHubScreen active={activeScreen === "screen-discovery-hub"} showScreen={showScreen} />
           <TourGuidesScreen active={activeScreen === "screen-tour-guides"} showScreen={showScreen} />
           <GuideDetailScreen
             active={activeScreen === "screen-guide-detail"}

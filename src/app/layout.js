@@ -2,6 +2,7 @@ import "./globals.css";
 import { AuthProvider } from "@/context/AuthContext";
 import { GuideAuthProvider } from "@/context/GuideAuthContext";
 import { WishlistProvider } from "@/context/WishlistContext";
+import Script from "next/script";
 
 export const metadata = {
   title: "Ride Lanka - Trip Planner",
@@ -20,6 +21,10 @@ export default function RootLayout({ children }) {
         />
       </head>
       <body className="antialiased">
+        <Script
+          src={`https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&libraries=places`}
+          strategy="beforeInteractive"
+        />
         <AuthProvider>
           <GuideAuthProvider>
             <WishlistProvider>{children}</WishlistProvider>
