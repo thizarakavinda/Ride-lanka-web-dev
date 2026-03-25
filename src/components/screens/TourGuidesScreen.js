@@ -134,7 +134,7 @@ export default function TourGuidesScreen({ active, showScreen }) {
                   className={`cat-chip${expertiseFilter.includes(opt.id) ? " active" : ""}`}
                   onClick={() => toggleExpertise(opt.id)}
                 >
-                  {opt.label}
+                  {t("exp" + opt.id.charAt(0).toUpperCase() + opt.id.slice(1))}
                 </button>
               ))}
             </div>
