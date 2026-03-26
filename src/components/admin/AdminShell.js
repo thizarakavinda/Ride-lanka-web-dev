@@ -6,6 +6,7 @@ import { getQuests, createQuest, updateQuest, deleteQuest, getSystemSettings, up
 import { addDoc, collection, collectionGroup, deleteDoc, doc, getDoc, getDocs, onSnapshot, orderBy, query, updateDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { Bar, Doughnut, Line } from "react-chartjs-2";
+import logoPng from "@/components/assets/logo.png";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -63,7 +64,9 @@ export default function AdminShell({ user, onLogout }) {
     <div className="admin-app">
       <aside className="admin-sidebar">
         <div className="admin-brand">
-          <div className="admin-brand-mark">🛡️</div>
+          <div className="admin-brand-mark">
+            <img src={logoPng?.src || logoPng} alt="Ride Lanka logo" />
+          </div>
           <div className="admin-brand-text">
             Ride Lanka
             <small>ADMIN PORTAL</small>
