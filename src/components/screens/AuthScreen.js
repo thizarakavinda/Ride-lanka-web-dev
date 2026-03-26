@@ -4,6 +4,7 @@ import { useState } from "react";
 import LoginForm from "./LoginForm";
 import SignUpForm from "./SignUpForm";
 import { useSettings } from "@/context/SettingsContext";
+import logoPng from "@/components/assets/logo.png";
 
 export default function AuthScreen({ active, onSignIn, onSignUp, onBack, guideIntent = false }) {
   const [activeTab, setActiveTab] = useState("login");
@@ -54,7 +55,9 @@ export default function AuthScreen({ active, onSignIn, onSignUp, onBack, guideIn
               </div>
             ) : null}
             <div className="auth-brand">
-              <span className="auth-brand-mark" aria-hidden />
+              <span className="auth-brand-mark" aria-hidden="true">
+                <img src={logoPng?.src || logoPng} alt="" />
+              </span>
               <div className="auth-brand-text">
                 <span className="auth-brand-name">Ride Lanka</span>
                 <span className="auth-brand-tagline">{t("authBrandTagline")}</span>

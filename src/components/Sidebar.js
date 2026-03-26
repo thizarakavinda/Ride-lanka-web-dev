@@ -1,6 +1,7 @@
 "use client";
 import { useSettings } from "@/context/SettingsContext";
 import { useAppMode } from "@/context/AppModeContext";
+import logoPng from "@/components/assets/logo.png";
 
 export default function Sidebar({
   activeItem = "home",
@@ -24,7 +25,9 @@ export default function Sidebar({
     return (
       <nav className="sidebar">
         <div className="sidebar-logo">
-          <div className="logo-icon">🎒</div>
+          <div className="logo-icon">
+            <img src={logoPng?.src || logoPng} alt="Ride Lanka logo" />
+          </div>
           <span>
             {logoText}
             <em>{logoEm}</em>
@@ -98,7 +101,9 @@ export default function Sidebar({
   return (
     <nav className="sidebar">
       <div className="sidebar-logo">
-        <div className="logo-icon">{logoIcon}</div>
+        <div className="logo-icon">
+          <img src={logoPng?.src || logoPng} alt="Ride Lanka logo" />
+        </div>
         <span>
           {logoText}
           <em>{logoEm}</em>

@@ -162,32 +162,55 @@ export default function TourGuidesScreen({ active, showScreen }) {
               {filtered.map((g) => (
                 <div
                   key={g.userId}
-                  className="dest-card"
+                  className="guide-select-card"
                   role="button"
                   tabIndex={0}
                   onClick={() => showScreen("screen-guide-detail", { guideId: g.userId })}
                   onKeyDown={(e) => e.key === "Enter" && showScreen("screen-guide-detail", { guideId: g.userId })}
-                  style={{ cursor: "pointer" }}
                 >
-                  <div className="card-img" style={{ height: 160 }}>
+                  <div className="guide-select-thumb">
                     <img
-                      src={g.photoURL || `https://source.unsplash.com/400x220/?portrait,guide,${encodeURIComponent(g.location || "Sri Lanka")}`}
+                      src={g.photoURL || `https://source.unsplash.com/320x320/?portrait,guide,${encodeURIComponent(g.location || "Sri Lanka")}`}
                       alt=""
                       onError={(e) => {
                         e.currentTarget.src = "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&q=80";
                       }}
                     />
-                    <span className="card-badge">{g.location || "Sri Lanka"}</span>
                   </div>
-                  <div className="card-body">
-                    <h4>{g.displayName}</h4>
-                    <div className="card-location">{g.headline || g.bio?.slice(0, 80) || "—"}</div>
-                    <div className="card-footer">
-                      <span className="card-rating">
-                        ⭐ {g.ratingAvg ? g.ratingAvg.toFixed(1) : "—"} {g.ratingCount ? `(${g.ratingCount})` : ""}
-                      </span>
-                      <span className="card-price">{g.hourlyRate ? `LKR ${g.hourlyRate}/hr` : t("guidesViewProfile")}</span>
+
+                  <div className="guide-select-body">
+                    <div className="guide-select-text">
+                      <div className="guide-select-title-row">
+                        <h4>{g.displayName}</h4>
+                        <span className="guide-select-rating">
+                          ⭐ {g.ratingAvg ? g.ratingAvg.toFixed(1) : "—"}
+                          {g.ratingCount ? ` (${g.ratingCount})` : ""}
+                        </span>
+                      </div>
+
+                      <div className="guide-select-location">📍 {g.location || "Sri Lanka"}</div>
+                      <div className="guide-select-headline">
+                        {g.headline || g.bio?.slice(0, 80) || "—"}
+                      </div>
                     </div>
+
+                    <div className="guide-select-bottom">
+                      <span className="guide-select-price">{g.hourlyRate ? `LKR ${g.hourlyRate}/hr` : "—"}</span>
+                    </div>
+                  </div>
+
+                  <div className="guide-select-action">
+                    <button
+                      type="button"
+                      className="guide-select-btn"
+                      aria-label={t("guidesViewProfile")}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        showScreen("screen-guide-detail", { guideId: g.userId });
+                      }}
+                    >
+                      <span aria-hidden="true">👁</span>
+                    </button>
                   </div>
                 </div>
               ))}
