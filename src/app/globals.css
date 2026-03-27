@@ -22,6 +22,27 @@
     --sidebar: 260px;
 }
 
+/* Logo visibility - invert white logo to black in light mode */
+.logo-icon img,
+.auth-brand-mark img,
+.admin-brand-mark img {
+    filter: brightness(0);
+    transition: filter 0.3s ease;
+}
+
+/* Restore white logo in dark mode */
+html.dark .logo-icon img,
+html.dark .auth-brand-mark img,
+html.dark .admin-brand-mark img {
+    filter: none;
+}
+
+/* Persistent dark backgrounds (Splash Screen) always keep white logo */
+#screen-splash .splash-logo img {
+    filter: none !important;
+}
+
+
 html.dark {
     --white: #12181c;
     --off-white: #0c1215;
@@ -368,10 +389,18 @@ html.dark .auth-guide-banner {
     align-items: center;
     justify-content: center;
     margin: 0 auto 28px;
-    font-size: 28px;
     backdrop-filter: blur(10px);
     border: 2px solid rgba(255, 255, 255, 0.3);
+    overflow: hidden;
 }
+
+.splash-logo img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    padding: 12px;
+}
+
 
 .splash-content h1 {
     font-family: 'Playfair Display', serif;
